@@ -1,0 +1,1 @@
+ here are something fixed: income  61,675.60, from bank statement view first-stage shareholder loan  51,074.92. the income tax already paid to cra: - **Tax Paid (RC0001):** $2,620.43

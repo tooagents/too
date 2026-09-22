@@ -1,0 +1,14 @@
+{
+    "name": "tooreact",
+    "private": true,
+    "workspaces": [
+        "web_t4",
+        "web_acc",
+        "web_inv",
+        "shared/*"
+    ],
+    "dependencies": {
+        "@clerk/react": "^6.6.2",
+        "requests": "^0.3.0"
+    }
+}

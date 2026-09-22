@@ -1,0 +1,99 @@
+﻿Following data is valid as of 20260628223559 (Year/Month/Day/Hour/Minute/Second)
+
+
+First Bank Card,Transaction Type,Date Posted, Transaction Amount,Description
+
+
+'5273350013624745',CREDIT,20250106,1.0,[CW]INTERAC ETRNSFR AD RECVD LEO RENY                                          
+'5273350013624745',CREDIT,20250114,183.89,[DS]UBER HOLDINGS C MSP/DIV                                                    
+'5273350013624745',CREDIT,20250121,151.26,[DS]UBER HOLDINGS C MSP/DIV                                                    
+'5273350013624745',DEBIT,20250124,-6.0,[CW]INTERAC ETRNSFR SENT     LEO TANGERINE            20250241033B2USZV        
+'5273350013624745',DEBIT,20250124,-330.0,[CW]INTERAC ETRNSFR SENT     LEO TANGERINE            20250241147KQEVTF        
+'5273350013624745',CREDIT,20250128,193.64,[DS]UBER HOLDINGS C MSP/DIV                                                    
+'5273350013624745',CREDIT,20250129,2260.0,[CW]INTERAC ETRNSFR AD RECVD DATAMOND SYSTEM INC.                              
+'5273350013624745',DEBIT,20250129,-2353.79,[CW]INTERAC ETRNSFR SENT     LEOBMOSAVING             20250291524AD5BDP        
+'5273350013624745',DEBIT,20250131,-1.5,[SC]INTERAC E-TRANSFER                                                         
+'5273350013624745',CREDIT,20250204,314.87,[DS]UBER HOLDINGS C MSP/DIV                                                    
+'5273350013624745',CREDIT,20250210,1.5,[SC]BR.3848                  SC REVERSAL  E TRANSFER  10FEB2025                
+'5273350013624745',CREDIT,20250211,161.43,[DS]UBER HOLDINGS C MSP/DIV                                                    
+'5273350013624745',CREDIT,20250211,2260.0,[CW]INTERAC ETRNSFR AD RECVD DATAMOND SYSTEM INC.                              
+'5273350013624745',DEBIT,20250211,-2816.3,[CW]INTERAC ETRNSFR SENT     LEOBMOSAVING             20250421410CJVP5B        
+'5273350013624745',CREDIT,20250218,322.02,[DS]UBER HOLDINGS C MSP/DIV                                                    
+'5273350013624745',CREDIT,20250221,2260.0,[CW]INTERAC ETRNSFR AD RECVD DATAMOND SYSTEM INC.                              
+'5273350013624745',DEBIT,20250221,-2600.0,[CW]INTERAC ETRNSFR SENT     LEOBMOSAVING             20250521817DAJ45A        
+'5273350013624745',CREDIT,20250225,126.7,[DS]UBER HOLDINGS C MSP/DIV                                                    
+'5273350013624745',CREDIT,20250304,161.01,[DS]UBER HOLDINGS C MSP/DIV                                                    
+'5273350013624745',CREDIT,20250310,2260.0,[CW]INTERAC ETRNSFR AD RECVD DATAMOND SYSTEM INC.                              
+'5273350013624745',DEBIT,20250310,-2549.0,[CW] TF 0303#3933-249                                                          
+'5273350013624745',CREDIT,20250311,167.56,[DS]UBER HOLDINGS C MSP/DIV                                                    
+'5273350013624745',CREDIT,20250318,248.21,[DS]UBER HOLDINGS C MSP/DIV                                                    
+'5273350013624745',CREDIT,20250321,4520.0,[CW]INTERAC ETRNSFR AD RECVD DATAMOND SYSTEM INC.                              
+'5273350013624745',DEBIT,20250321,-4900.5,[CW] TF 0303#3933-249                                                          
+'5273350013624745',CREDIT,20250325,120.66,[DS]UBER HOLDINGS C MSP/DIV                                                    
+'5273350013624745',DEBIT,20250325,-150.0,[CW] TF 0303#3933-249                                                          
+'5273350013624745',CREDIT,20250331,188.84,[CW] TF 0303#3933-249                                                          
+'5273350013624745',DEBIT,20250331,-195.0,[CW]INTERAC ETRNSFR SENT     LEONATIONAL              20250902009SS3XXF        
+'5273350013624745',CREDIT,20250401,210.77,[DS]UBER HOLDINGS C MSP/DIV                                                    
+'5273350013624745',DEBIT,20250401,-211.0,[CW] TF 0303#3933-249                                                          
+'5273350013624745',CREDIT,20250408,130.01,[DS]UBER HOLDINGS C MSP/DIV                                                    
+'5273350013624745',CREDIT,20250415,47.27,[DS]UBER HOLDINGS C MSP/DIV                                                    
+'5273350013624745',CREDIT,20250421,4520.0,[CW]INTERAC ETRNSFR AD RECVD DATAMOND SYSTEM INC.                              
+'5273350013624745',DEBIT,20250421,-4696.0,[CW] TF 0303#3933-249                                                          
+'5273350013624745',CREDIT,20250422,133.71,[DS]UBER HOLDINGS C MSP/DIV                                                    
+'5273350013624745',CREDIT,20250428,9950.59,[CW] TF 0303#3933-249                                                          
+'5273350013624745',DEBIT,20250428,-9999.95,[CW]INTERAC ETRNSFR SENT     LEONATIONAL              20251181912H4BB26        
+'5273350013624745',CREDIT,20250429,81.1,[DS]UBER HOLDINGS C MSP/DIV                                                    
+'5273350013624745',CREDIT,20250429,10000.01,[CW] TF 0303#3933-249                                                          
+'5273350013624745',DEBIT,20250429,-9999.97,[CW]INTERAC ETRNSFR SENT     LEONATIONAL              20251192028QZG9YG        
+'5273350013624745',DEBIT,20250430,-167.0,[CW] TF 0303#3933-249                                                          
+'5273350013624745',CREDIT,20250506,150.97,[DS]UBER HOLDINGS C MSP/DIV                                                    
+'5273350013624745',DEBIT,20250506,-15.01,[CW] TF 0303#3933-249                                                          
+'5273350013624745',DEBIT,20250506,-135.0,[CW] TF 0303#3933-249                                                          
+'5273350013624745',CREDIT,20250513,146.72,[DS]UBER HOLDINGS C MSP/DIV                                                    
+'5273350013624745',CREDIT,20250520,131.31,[DS]UBER HOLDINGS C MSP/DIV                                                    
+'5273350013624745',CREDIT,20250523,4520.0,[CW]INTERAC ETRNSFR AD RECVD DATAMOND SYSTEM INC.                              
+'5273350013624745',DEBIT,20250523,-4790.03,[CW]INTERAC ETRNSFR SENT     LEO TANGERINE            20251431458RNUJJ6        
+'5273350013624745',CREDIT,20250527,31.15,[DS]UBER HOLDINGS C MSP/DIV                                                    
+'5273350013624745',CREDIT,20250529,6900.0,[CW] TF 0303#3933-249                                                          
+'5273350013624745',DEBIT,20250529,-6930.15,[CW]INTERAC ETRNSFR SENT     LEO TANGERINE            20251491438HZ3FFF        
+'5273350013624745',CREDIT,20250603,97.53,[DS]UBER HOLDINGS C MSP/DIV                                                    
+'5273350013624745',CREDIT,20250610,89.65,[DS]UBER HOLDINGS C MSP/DIV                                                    
+'5273350013624745',CREDIT,20250617,138.21,[DS]UBER HOLDINGS C MSP/DIV                                                    
+'5273350013624745',CREDIT,20250617,2260.0,[CW]INTERAC ETRNSFR AD RECVD DATAMOND SYSTEM INC.                              
+'5273350013624745',DEBIT,20250617,-2590.39,[CW] TF 0303#3933-249                                                          
+'5273350013624745',CREDIT,20250623,2260.0,[CW]INTERAC ETRNSFR AD RECVD DATAMOND SYSTEM INC.                              
+'5273350013624745',DEBIT,20250623,-2260.0,[CW] TF 0303#3933-249                                                          
+'5273350013624745',CREDIT,20250624,84.41,[DS]UBER HOLDINGS C MSP/DIV                                                    
+'5273350013624745',CREDIT,20250702,123.59,[DS]UBER HOLDINGS C MSP/DIV                                                    
+'5273350013624745',CREDIT,20250708,134.79,[DS]UBER HOLDINGS C MSP/DIV                                                    
+'5273350013624745',CREDIT,20250715,113.97,[DS]UBER HOLDINGS C MSP/DIV                                                    
+'5273350013624745',CREDIT,20250718,4520.0,[CW]INTERAC ETRNSFR AD RECVD DATAMOND SYSTEM INC.                              
+'5273350013624745',DEBIT,20250718,-4980.0,[CW]INTERAC ETRNSFR SENT     LEO TANGERINE            20251991752MRNMJJ        
+'5273350013624745',CREDIT,20250722,106.27,[DS]UBER HOLDINGS C MSP/DIV                                                    
+'5273350013624745',CREDIT,20250729,89.89,[DS]UBER HOLDINGS C MSP/DIV                                                    
+'5273350013624745',DEBIT,20250731,-190.92,[CW] TF 0303#3933-249                                                          
+'5273350013624745',CREDIT,20250805,50.26,[DS]UBER HOLDINGS C MSP/DIV                                                    
+'5273350013624745',DEBIT,20250814,-57.0,[CW] TF 0303#3933-249                                                          
+'5273350013624745',CREDIT,20250815,2260.0,[CW]INTERAC ETRNSFR AD RECVD DATAMOND SYSTEM INC.                              
+'5273350013624745',DEBIT,20250815,-2260.0,[CW] TF 0303#3933-249                                                          
+'5273350013624745',CREDIT,20250822,2260.0,[CW]INTERAC ETRNSFR AD RECVD DATAMOND SYSTEM INC.                              
+'5273350013624745',DEBIT,20250822,-2260.0,[CW] TF 0303#3933-249                                                          
+'5273350013624745',CREDIT,20250902,2260.0,[CW]INTERAC ETRNSFR AD RECVD DATAMOND SYSTEM INC.                              
+'5273350013624745',DEBIT,20250902,-2260.0,[CW] TF 0303#3933-249                                                          
+'5273350013624745',CREDIT,20250926,4520.0,[CW]MOBILE CHEQUE DEPOSIT                                                      
+'5273350013624745',DEBIT,20250929,-0.2,[SC]CHQ           1 @  $0.20                                                   
+'5273350013624745',CREDIT,20251003,6000.66,[CW] TF 0303#3933-249                                                          
+'5273350013624745',DEBIT,20251003,-6000.02,[CW]INTERAC ETRNSFR SENT     MERIDIAN                 20252761643HW9ZDG        
+'5273350013624745',DEBIT,20251006,-4520.0,[CW] TF 0303#3933-249                                                          
+'5273350013624745',CREDIT,20251014,2260.0,[CW]MOBILE CHEQUE DEPOSIT                                                      
+'5273350013624745',DEBIT,20251022,-2260.0,[CW] TF 0303#3933-249                                                          
+'5273350013624745',DEBIT,20251031,-0.2,[SC]CHQ           1 @  $0.20                                                   
+'5273350013624745',CREDIT,20251104,5.0,[DS]MANULIFE BANK O MSP/DIV                                                    
+'5273350013624745',CREDIT,20251107,2255.0,[DS]MANULIFE BANK O MSP/DIV                                                    
+'5273350013624745',DEBIT,20251110,-2260.0,[CW] TF 0303#3933-249                                                          
+'5273350013624745',CREDIT,20251114,116.9,[CW]INTERAC ETRNSFR RECVD    RAKUTEN CANADA           20253181848117873        
+'5273350013624745',CREDIT,20251114,40.5,[CW]INTERAC ETRNSFR RECVD    RAKUTEN CANADA           20253181856118841        
+'5273350013624745',DEBIT,20251117,-157.0,[CW] TF 0303#3933-249                                                          
+'5273350013624745',CREDIT,20251201,4610.2,[DS]MANULIFE BANK O MSP/DIV                                                    
+'5273350013624745',DEBIT,20251205,-4611.0,[CW] TF 0303#3933-249                                                          
+'5273350013624745',CREDIT,20251231,4564.0,[DS]MANULIFE BANK O MSP/DIV                                                    

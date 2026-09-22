@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ztest</title>
+    <style>
+      body {
+        margin: 24px;
+        font-family: Arial, sans-serif;
+        color: #1f2937;
+      }
+
+      h1 {
+        margin: 0 0 16px;
+        font-size: 24px;
+        font-weight: 700;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      form {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+        margin-bottom: 16px;
+      }
+
+      input,
+      button {
+        min-height: 34px;
+        padding: 6px 10px;
+        border: 1px solid #d1d5db;
+        font-size: 14px;
+      }
+
+      button {
+        cursor: pointer;
+        background: #111827;
+        color: #ffffff;
+      }
+
+      th,
+      td {
+        padding: 8px 10px;
+        border: 1px solid #d1d5db;
+        text-align: left;
+        vertical-align: top;
+        font-size: 14px;
+      }
+
+      th {
+        background: #f3f4f6;
+      }
+
+      .muted {
+        color: #6b7280;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>ztest</h1>
+    <form id="loginForm">
+      <input id="email" name="email" type="email" placeholder="Email" autocomplete="email" required />
+      <input id="password" name="password" type="password" placeholder="Password" autocomplete="current-password" required />
+      <button type="submit">Login</button>
+      <button id="logoutButton" type="button" hidden>Logout</button>
+    </form>
+    <div id="status" class="muted">Login to load records.</div>
+    <table id="records" hidden>
+      <thead>
+        <tr>
+          <th>id</th>
+          <th>test1</th>
+          <th>test2</th>
+          <th>ten_id</th>
+          <th>biz_id</th>
+          <th>usr_id</th>
+          <th>cli_id</th>
+          <th>created_by</th>
+          <th>created_at</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <script>
+      const statusEl = document.getElementById("status");
+      const tableEl = document.getElementById("records");
+      const tbodyEl = tableEl.querySelector("tbody");
+      const loginForm = document.getElementById("loginForm");
+      const emailEl = document.getElementById("email");
+      const passwordEl = document.getElementById("password");
+      const logoutButton = document.getElementById("logoutButton");
+      const tokenKey = "toocore_access_token";
+      const fields = [
+        "id",
+        "test1",
+        "test2",
+        "ten_id",
+        "biz_id",
+        "usr_id",
+        "cli_id",
+        "created_by",
+        "created_at",
+      ];
+
+      function cell(value) {
+        const td = document.createElement("td");
+        td.textContent = value ?? "";
+        return td;
+      }
+
+      function setLoggedInState(isLoggedIn) {
+        logoutButton.hidden = !isLoggedIn;
+        emailEl.hidden = isLoggedIn;
+        passwordEl.hidden = isLoggedIn;
+        loginForm.querySelector("button[type='submit']").hidden = isLoggedIn;
+      }
+
+      function renderRows(rows) {
+        tbodyEl.textContent = "";
+        statusEl.textContent = rows.length ? "" : "No records.";
+        tableEl.hidden = !rows.length;
+        for (const row of rows) {
+          const tr = document.createElement("tr");
+          for (const field of fields) {
+            tr.appendChild(cell(row[field]));
+          }
+          tbodyEl.appendChild(tr);
+        }
+      }
+
+      async function loadRecords() {
+        const token = localStorage.getItem(tokenKey);
+        setLoggedInState(Boolean(token));
+        if (!token) {
+          statusEl.textContent = "Login to load records.";
+          tableEl.hidden = true;
+          return;
+        }
+
+        statusEl.textContent = "Loading...";
+        const response = await fetch("/too/get_ztest_list", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (response.status === 401) {
+          localStorage.removeItem(tokenKey);
+          setLoggedInState(false);
+          throw new Error("Session expired. Login again.");
+        }
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        renderRows(await response.json());
+      }
+
+      async function login(email, password) {
+        const configResponse = await fetch("/auth-config");
+        if (!configResponse.ok) {
+          throw new Error("Auth config unavailable.");
+        }
+        const config = await configResponse.json();
+        if (!config.supabaseAnonKey) {
+          throw new Error("SUPABASE_ANON_KEY is not set.");
+        }
+
+        const response = await fetch(`${config.supabaseUrl}/auth/v1/token?grant_type=password`, {
+          method: "POST",
+          headers: {
+            apikey: config.supabaseAnonKey,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email, password }),
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.msg || data.error_description || "Login failed.");
+        }
+        localStorage.setItem(tokenKey, data.access_token);
+      }
+
+      loginForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        statusEl.textContent = "Logging in...";
+        try {
+          await login(emailEl.value, passwordEl.value);
+          passwordEl.value = "";
+          await loadRecords();
+        } catch (error) {
+          statusEl.textContent = error.message;
+        }
+      });
+
+      logoutButton.addEventListener("click", () => {
+        localStorage.removeItem(tokenKey);
+        renderRows([]);
+        setLoggedInState(false);
+        statusEl.textContent = "Login to load records.";
+      });
+
+      loadRecords().catch((error) => {
+        statusEl.textContent = error.message;
+      });
+    </script>
+  </body>
+</html>
