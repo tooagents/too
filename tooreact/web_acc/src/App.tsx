@@ -11,7 +11,6 @@ import { useClientStore } from './store/client-store';
 import config from './config';
 
 
-
 function App() {
     useEffect(() => {
         const setAuthUser = useAuthStore.getState().setUser;
