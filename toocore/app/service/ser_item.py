@@ -28,3 +28,10 @@ async def create_or_update_item(zjwt: JWType, db: AsyncConnection, payload: dict
             return await update_item_fields(db, existing, updates)
     data = {**base_ids, **payload}
     return await repo_create_item(db, data)
+
+
+async def soft_delete_item(zjwt: JWType, db: AsyncConnection, item_id) -> None:
+    existing = await get_item_by_id(db, item_id, zjwt)
+    if not existing:
+        raise ValueError("Item not found")
+    await update_item_fields(db, existing, {"is_deleted": True})

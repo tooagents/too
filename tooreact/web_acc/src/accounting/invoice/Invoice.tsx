@@ -569,6 +569,28 @@ const Invoice = () => {
 
     const saveEdit = async () => {
         if (!editDraft || isSavingEdit) return;
+
+        // An invoice number is required — no blanks.
+        const desiredNumber = editDraft.inv_number.trim();
+        if (!desiredNumber) {
+            setError('An invoice number is required.');
+            setMsg(null);
+            return;
+        }
+
+        // Enforce a unique invoice number client-side (the backend may not).
+        // Case-insensitive; skip the row being edited so re-saving is allowed.
+        const clash = invoices.some(
+            (row) =>
+                row.inv_id !== editing?.inv_id &&
+                (row.inv_number ?? '').trim().toLowerCase() === desiredNumber.toLowerCase(),
+        );
+        if (clash) {
+            setError(`Invoice number "${desiredNumber}" is already in use. Choose a different one.`);
+            setMsg(null);
+            return;
+        }
+
         setIsSavingEdit(true);
         setError(null);
         setMsg(null);
@@ -1039,7 +1061,12 @@ const Invoice = () => {
                             <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
                                 <label className="flex flex-col gap-1.5">
                                     <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Invoice #</span>
-                                    <Input value={editDraft.inv_number} readOnly disabled className="opacity-70" />
+                                    <Input
+                                        value={editDraft.inv_number}
+                                        onChange={(e) => updateEditDraft('inv_number', e.target.value)}
+                                        placeholder="INV-001 / REM-001"
+                                        disabled={isSavingEdit}
+                                    />
                                 </label>
                                 <label className="flex flex-col gap-1.5">
                                     <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Date</span>

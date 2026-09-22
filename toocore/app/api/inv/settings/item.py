@@ -1,13 +1,15 @@
+from uuid import UUID
+
 from app.schemas.sch_ai import JWType
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from app.core.auth import get_zjwt
 from app.db.conn.pgconn import get_rls_conn
 from app.db.models.inv.i_tem import ItemDB
 from app.schemas.sch_item import ItemCreate, ItemOut
-from app.service.ser_item import create_or_update_item, fetch_items
+from app.service.ser_item import create_or_update_item, fetch_items, soft_delete_item
 
 itemRou = APIRouter()
 
@@ -45,3 +47,20 @@ async def post_item(
 ):
     item = await create_or_update_item(zjwt, db, payload.model_dump(exclude_unset=True))
     return _to_out(item)
+
+
+@itemRou.delete("/delete_item")
+async def delete_item(
+    item_id: str,
+    zjwt: JWType = Depends(get_zjwt),
+    db: AsyncConnection = Depends(get_rls_conn),
+):
+    try:
+        item_uuid = UUID(str(item_id))
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail="item_id must be a valid UUID") from exc
+    try:
+        await soft_delete_item(zjwt, db, item_uuid)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    return {"ok": True, "item_id": str(item_uuid), "is_deleted": 1}

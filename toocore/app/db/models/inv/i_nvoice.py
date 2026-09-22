@@ -1,7 +1,7 @@
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import Boolean, DateTime, Integer, Numeric, String, Uuid
+from sqlalchemy import Boolean, DateTime, Index, Integer, Numeric, String, Uuid, text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.models.too.z_base import Base, BaseMixin
@@ -10,8 +10,20 @@ from app.db.models.db_schemas import SCHEMA_TOO_INV, SCHEMA_TOO_GLOBAL
 
 class InvoiceDB(Base, BaseMixin):
     __tablename__ = "invoice"
-    __table_args__ = {"schema": SCHEMA_TOO_INV}
-    
+    __table_args__ = (
+        # Invoice numbers are unique per tenant. Partial so soft-deleted rows and
+        # NULL (unnumbered) rows are excluded — see the matching Alembic migration
+        # o_d1e2f3a4b5c6_unique_invoice_number.
+        Index(
+            "uq_too_inv_invoice_ten_number",
+            "ten_id",
+            "inv_number",
+            unique=True,
+            postgresql_where=text("is_deleted IS NOT TRUE AND inv_number IS NOT NULL"),
+        ),
+        {"schema": SCHEMA_TOO_INV},
+    )
+
     inv_number: Mapped[str | None] = mapped_column(String(64))
     inv_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     inv_due_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

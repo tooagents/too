@@ -15,7 +15,7 @@ async def list_items(db: AsyncConnection, zjwt: JWType) -> List[ItemDB]:
     table = ItemDB.__table__
     result = await db.execute(
         select(table)
-        .where(table.c.created_by == zjwt.zuid)
+        .where(table.c.created_by == zjwt.zuid, table.c.is_deleted.isnot(True))
         .order_by(table.c.created_at.desc())
     )
     return models_from_mappings(ItemDB, list(result.mappings().all()))

@@ -37,6 +37,7 @@ const Modern = Loadable(lazy(() => import('src/overview/Overview')));
 /* =========================Pages========================= */
 const UserProfile = Loadable(lazy(() => import('src/settings/me/Me')));
 const Clients = Loadable(lazy(() => import('src/settings/clients/Clients')));
+const Items = Loadable(lazy(() => import('src/settings/items/Items')));
 const BillingSubscription = Loadable(lazy(() => import('src/settings/billing/BillingSubscription')));
 const BillingSuccess = Loadable(lazy(() => import('src/settings/billing/BillingSuccess')));
 const BillingCancel = Loadable(lazy(() => import('src/settings/billing/BillingCancel')));
@@ -114,6 +115,7 @@ const router = createBrowserRouter([
                     { path: 'apps/blog/detail/:id', element: <BlogDetail /> },
                     { path: 'user-profile', element: <UserProfile /> },
                     { path: 'clients', element: <Clients /> },
+                    { path: 'items', element: <Items /> },
                     { path: 'settings/billing', element: <BillingSubscription /> },
                     { path: 'billing/success', element: <BillingSuccess /> },
                     { path: 'billing/cancel', element: <BillingCancel /> },

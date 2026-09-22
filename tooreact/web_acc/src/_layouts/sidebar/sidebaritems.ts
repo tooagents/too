@@ -107,6 +107,18 @@ const SidebarContent: MenuItem[] = [
                 isPro: false,
             },
             {
+                name: 'Clients',
+                icon: 'solar:users-group-two-rounded-linear',
+                id: uniqueId(),
+                url: '/app/clients',
+            },
+            {
+                name: 'Items',
+                icon: 'solar:box-linear',
+                id: uniqueId(),
+                url: '/app/items',
+            },
+            {
                 name: 'COA',
                 icon: 'solar:users-group-rounded-linear',
                 id: uniqueId(),
