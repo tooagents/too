@@ -17,7 +17,7 @@ ${paidStamp}
     <h1 style="border-bottom: 2px solid #444; padding-bottom: 10px;">Invoice</h1>
     <div style="display: flex; justify-content: space-between;">
       <div>
-        <h2>${oBiz.be_name}</h2>
+        <h2>${oBiz.be_name || ""}</h2>
         <p>${oBiz.be_address || ""}<br/>${oBiz.be_phone || ""}<br/>${oBiz.be_email || ""}</p>
       </div>
       <div>

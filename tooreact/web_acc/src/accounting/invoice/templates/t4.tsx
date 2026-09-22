@@ -30,12 +30,12 @@ const bodyContent = `
 
 			</figure>
 			<div class="company-info">
-				<h2 class="title">${oBiz.be_name}</h2>
-				<span>${oBiz.be_address}</span>
+				<h2 class="title">${oBiz.be_name || ""}</h2>
+				<span>${oBiz.be_address || ""}</span>
 				<span class="line"></span>
-				<a class="phone" href="tel:602-519-0450">${oBiz.be_phone}</a>
+				<a class="phone" href="tel:602-519-0450">${oBiz.be_phone || ""}</a>
 				<span class="line"></span>
-				<a class="email" href="mailto:company@example.com">${oBiz.be_email}</a>
+				<a class="email" href="mailto:company@example.com">${oBiz.be_email || ""}</a>
 			</div>
 		</div>
 	</header>

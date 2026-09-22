@@ -16,12 +16,12 @@ export const t3 = (
 const bodyContent = `  <div class="invoice-wrapper">
     <header class="invoice-header">
       <div class="header-left">
-        <h1>${oBiz.be_name}</h1>
+        <h1>${oBiz.be_name || ""}</h1>
         <p>
-          ${oBiz.be_address}<br />
-          ${oBiz.be_phone}<br />
-          ${oBiz.be_email}<br />
-          ${oBiz.be_biz_number}
+          ${oBiz.be_address || ""}<br />
+          ${oBiz.be_phone || ""}<br />
+          ${oBiz.be_email || ""}<br />
+          ${oBiz.be_biz_number || ""}
         </p>
       </div>
       <div class="header-right">

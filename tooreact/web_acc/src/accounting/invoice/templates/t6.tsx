@@ -15,7 +15,7 @@ export const t6 = (
         <h1 style="text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px;">Invoice</h1>
         <div style="display: flex; justify-content: space-between;">
             <div>
-                <h3>${oBiz.be_name}</h3>
+                <h3>${oBiz.be_name || ""}</h3>
                 <p>${oBiz.be_address || ""}<br/>${oBiz.be_phone || ""}<br/>${oBiz.be_email || ""}</p>
             </div>
             <div>

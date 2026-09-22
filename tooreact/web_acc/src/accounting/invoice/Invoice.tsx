@@ -913,7 +913,12 @@ const Invoice = () => {
         void meOrgAPI
             .getMyOrg()
             .then((org) => { if (!cancelled) setBiz(org ?? {}); })
-            .catch(() => { /* templates fall back to blank business fields */ });
+            .catch((err) => {
+                // Templates fall back to blank business fields, but never fail
+                // silently — a broken /too/getbe (e.g. a pending migration) used
+                // to surface only as "undefined" in every template's header.
+                console.error('Failed to load business entity for invoice templates', err);
+            });
         return () => { cancelled = true; };
     }, []);
 

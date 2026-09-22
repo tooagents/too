@@ -21,7 +21,7 @@ export const t1 = (
               style="width: 150px; height: 100px; object-fit: cover; display: block;" />
           </div>` : ""
         }
-        <h1 style="margin: 0;">${oBiz.be_name}</h1>
+        <h1 style="margin: 0;">${oBiz.be_name || ""}</h1>
         <p style="margin: 5px 0;">
           ${oBiz.be_address || ""}<br/>
           ${oBiz.be_phone || ""}<br/>

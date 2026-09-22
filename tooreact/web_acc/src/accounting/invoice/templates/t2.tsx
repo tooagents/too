@@ -20,11 +20,11 @@ export function t2(
     <div class="header-bg">
       <div class="invoice-banner">
         <div class="company-info">
-          <p><strong>${oBiz.be_name}</strong><br>
-          ${oBiz.be_address?.replace(/\n/g, "<br>")}<br>
-          ${oBiz.be_phone}<br>
-          ${oBiz.be_email}<br>
-          ${oBiz.be_biz_number}</p>
+          <p><strong>${oBiz.be_name || ""}</strong><br>
+          ${oBiz.be_address?.replace(/\n/g, "<br>") || ""}<br>
+          ${oBiz.be_phone || ""}<br>
+          ${oBiz.be_email || ""}<br>
+          ${oBiz.be_biz_number || ""}</p>
         </div>
         <div class="invoice-label">INVOICE</div>
       </div>

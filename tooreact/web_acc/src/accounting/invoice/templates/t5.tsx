@@ -15,7 +15,7 @@ export const t5 = (
         ${paidStamp}
         <h1 style="text-align: center; font-size: 36px;">INVOICE</h1>
         <div style="text-align: center; margin-bottom: 30px;">
-            <p>${oBiz.be_name}</p>
+            <p>${oBiz.be_name || ""}</p>
             <p>${oBiz.be_address || ""} | ${oBiz.be_phone || ""} | ${oBiz.be_email || ""}</p>
         </div>
 
