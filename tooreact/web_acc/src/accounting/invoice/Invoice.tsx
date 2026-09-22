@@ -269,6 +269,9 @@ const Invoice = () => {
     const [discount, setDiscount] = useState<{ value: string; type: 'percent' | 'flat' }>({ value: '', type: 'flat' });
     const [tax, setTax] = useState<{ label: string; rate: number } | null>(null);
     const [fee, setFee] = useState<{ label: string; amount: number } | null>(null);
+    // Business default sales tax (be_default_tax_id → itax.id). New invoices
+    // seed their tax from the matching option in taxOptions; null = No tax.
+    const [defaultTaxId, setDefaultTaxId] = useState<string | null>(null);
 
     const refresh = async () => {
         setLoading(true);
@@ -323,6 +326,9 @@ const Invoice = () => {
             setNextNumber(await oInvAPI.getNextInvoiceNumber());
         })();
         void (async () => {
+            setDefaultTaxId(await oInvAPI.getDefaultTaxId());
+        })();
+        void (async () => {
             const [its, taxes, fees, methods] = await Promise.all([
                 oInvAPI.listItems(),
                 oInvAPI.listTaxes(),
@@ -366,7 +372,10 @@ const Invoice = () => {
         const today = toLocalDateStr(new Date());
         setItems([emptyItemRow()]);
         setDiscount({ value: '', type: 'flat' });
-        setTax(null);
+        // Seed the tax from the business default (My Business → Default Sales Tax).
+        // Falls back to No tax when unset or the preset is no longer in the catalog.
+        const defaultTax = defaultTaxId ? taxOptions.find((t) => t.id === defaultTaxId) : undefined;
+        setTax(defaultTax ? { label: defaultTax.tax_name ?? '', rate: normalizeRate(defaultTax.tax_rate) } : null);
         setFee(null);
         setEditDraft({
             inv_number: nextNumber,
@@ -569,6 +578,13 @@ const Invoice = () => {
 
     const saveEdit = async () => {
         if (!editDraft || isSavingEdit) return;
+        // The backend resyncs line items from this payload (delete-then-insert),
+        // so never save while the existing items are still loading — that would
+        // persist an empty list and wipe the stored items.
+        if (itemsLoading) {
+            setError('Line items are still loading — please wait a moment and try again.');
+            return;
+        }
 
         // An invoice number is required — no blanks.
         const desiredNumber = editDraft.inv_number.trim();

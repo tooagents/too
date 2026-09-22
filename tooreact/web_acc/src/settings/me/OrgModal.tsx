@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Label } from "src/components/ui/label";
 import { Input } from "src/components/ui/input";
 import { Textarea } from "src/components/ui/textarea";
 import { dateOnly, type InterfaceBE } from "src/types/type_be";
+import { oInvAPI, type TaxOption } from "src/accounting/invoice/o_inv-api";
 
 type OrgModalProps = {
     tempOrganization: InterfaceBE;
@@ -12,7 +13,22 @@ type OrgModalProps = {
 const text = (value?: string | number | null) => (value === undefined || value === null ? "" : String(value));
 const LABEL = "w-44 text-sm text-gray-600 whitespace-nowrap";
 
-const OrgModal = ({ tempOrganization, setTempOrganization }: OrgModalProps) => (
+// Parse a tax rate that may arrive as a number or a "13%"/"13" string.
+const rateNum = (v: number | string | null | undefined): number => {
+    const n = Number(String(v ?? "").replace("%", "").trim());
+    return Number.isFinite(n) ? n : 0;
+};
+
+const OrgModal = ({ tempOrganization, setTempOrganization }: OrgModalProps) => {
+    const [taxOptions, setTaxOptions] = useState<TaxOption[]>([]);
+
+    useEffect(() => {
+        void (async () => {
+            setTaxOptions(await oInvAPI.listTaxes());
+        })();
+    }, []);
+
+    return (
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <div className="flex items-center gap-3">
             <Label htmlFor="orgName" className={LABEL}>Operating Name</Label>
@@ -182,6 +198,25 @@ const OrgModal = ({ tempOrganization, setTempOrganization }: OrgModalProps) => (
                 })}
             />
         </div>
+        <div className="flex items-center gap-3">
+            <Label htmlFor="orgDefaultTax" className={LABEL}>Default Sales Tax</Label>
+            <select
+                id="orgDefaultTax"
+                className="flex-1 h-9 rounded-md border border-input bg-transparent px-2 text-sm"
+                value={text(tempOrganization.be_default_tax_id)}
+                onChange={(e) => setTempOrganization({
+                    ...tempOrganization,
+                    be_default_tax_id: e.target.value === "" ? null : e.target.value,
+                })}
+            >
+                <option value="">No tax</option>
+                {taxOptions.map((t) => (
+                    <option key={t.id} value={t.id}>
+                        {t.tax_name} ({rateNum(t.tax_rate)}%)
+                    </option>
+                ))}
+            </select>
+        </div>
         <div className="flex items-start gap-3 lg:col-span-2">
             <Label htmlFor="orgInvTnc" className={LABEL}>Default Invoice Terms</Label>
             <Textarea
@@ -194,6 +229,7 @@ const OrgModal = ({ tempOrganization, setTempOrganization }: OrgModalProps) => (
             />
         </div>
     </div>
-);
+    );
+};
 
 export default OrgModal;

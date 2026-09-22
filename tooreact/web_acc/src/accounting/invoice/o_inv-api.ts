@@ -337,6 +337,19 @@ export const oInvAPI = {
         }
     },
 
+    // Business-level default sales tax preset (be_default_tax_id → itax.id),
+    // used to pre-fill the tax on a brand-new invoice. null if unset/unreadable.
+    async getDefaultTaxId(): Promise<string | null> {
+        try {
+            const response = await apiFetch('/too/getbe');
+            if (!response.ok) return null;
+            const be = await response.json();
+            return be?.be_default_tax_id ?? null;
+        } catch {
+            return null;
+        }
+    },
+
     // Create-or-update. Passing inv_id updates in place.
     async saveInvoice(payload: InvoiceUpdate): Promise<Invoice> {
         const response = await apiFetch('/inv/post_inv_one', {

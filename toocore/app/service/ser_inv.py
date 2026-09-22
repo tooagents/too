@@ -14,7 +14,7 @@ from app.db.models.inv.i_nvoice import InvoiceDB
 from app.db.models.inv.i_nvoice_item import InvoiceItemDB
 from app.db.models.inv.i_nvoice_payment import InvoicePaymentDB
 from app.db.models.too.z_be import ZBizEntityDB
-from app.db.repo.repo_inv_item import create_invoice_item, list_invoice_items
+from app.db.repo.repo_inv_item import create_invoice_item, delete_invoice_items, list_invoice_items
 from app.db.repo.repo_inv import (create_invoice,get_invoice_by_id,list_invoices,
                                   list_recent_invoices_by_client,update_invoice_fields,)
 from app.db.repo.repo_inv_payment import (create_invoice_payment,list_invoice_payments,)
@@ -122,7 +122,13 @@ async def create_or_update_invoice(zjwt: JWType, db: AsyncConnection, payload: d
         data["client_id"] = _to_uuid(data.get("client_id"))
 
     data.pop("is_active", None)
-    data.pop("inv_items", None)
+    # Line items are sent by the editor and must be persisted to the separate
+    # invoice_item table (they were previously dropped here, so amounts/items
+    # were lost on save). Only touch items when the caller actually sent the
+    # key — partial saves (e.g. a payment-status drift write) omit it and must
+    # leave existing items untouched.
+    has_items = "inv_items" in data
+    raw_items = data.pop("inv_items", None)
     data.pop("inv_payments", None)
     data.pop("created_at", None)
     data.pop("updated_at", None)
@@ -146,12 +152,48 @@ async def create_or_update_invoice(zjwt: JWType, db: AsyncConnection, payload: d
                     "created_at",
                 }
             }
-            return await update_invoice_fields(db, existing, updates)
+            invoice = await update_invoice_fields(db, existing, updates)
+            if has_items:
+                await _sync_invoice_items(zjwt, db, invoice.id, raw_items or [])
+            return invoice
 
     create_payload = {**filtered, **_base_ids(zjwt)}
     if not create_payload.get("inv_number"):
         create_payload["inv_number"] = await _next_invoice_number(zjwt, db)
-    return await create_invoice(db, create_payload)
+    invoice = await create_invoice(db, create_payload)
+    if has_items:
+        await _sync_invoice_items(zjwt, db, invoice.id, raw_items or [])
+    return invoice
+
+
+async def _sync_invoice_items(
+    zjwt: JWType, db: AsyncConnection, inv_id: UUID, items: list[Any]
+) -> None:
+    """Replace an invoice's line items with the editor's current rows.
+
+    Delete-then-insert keeps this simple and idempotent: the editor always
+    sends the full item list, so the stored rows should mirror it exactly.
+    Empty rows (no name, rate, or amount) are skipped so a blank trailing row
+    doesn't persist.
+    """
+    await delete_invoice_items(db, inv_id)
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        payload = {k: v for k, v in item.items() if k in _INVOICE_ITEM_COLUMNS}
+        payload.pop("id", None)
+        payload.pop("created_at", None)
+        if not payload.get("item_name") and not payload.get("item_rate") and not payload.get("item_amount"):
+            continue
+        # Safety net: derive amount from qty * rate if the caller omitted it.
+        if payload.get("item_amount") in (None, "") and payload.get("item_quantity") is not None and payload.get("item_rate") is not None:
+            try:
+                payload["item_amount"] = float(payload["item_quantity"]) * float(payload["item_rate"])
+            except (TypeError, ValueError):
+                pass
+        payload["inv_id"] = inv_id
+        payload.update(_base_ids(zjwt))
+        await create_invoice_item(db, payload)
 
 
 async def soft_delete_invoice(zjwt: JWType, db: AsyncConnection, inv_id: UUID) -> InvoiceDB:

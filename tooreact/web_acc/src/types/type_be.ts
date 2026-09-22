@@ -27,6 +27,8 @@ export interface InterfaceBE {
     be_inv_prefix?: Nullable<string>;
     be_inv_integer?: Nullable<number>;
     be_inv_integer_max?: Nullable<number>;
+    // Default sales tax preset (itax.id) for new invoices; null = No tax.
+    be_default_tax_id?: Nullable<string>;
     be_show_paid_stamp?: Nullable<boolean>;
     be_plan_id?: Nullable<string>;
     be_plan_name?: Nullable<string>;

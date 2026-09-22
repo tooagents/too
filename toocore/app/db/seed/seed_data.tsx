@@ -66,6 +66,7 @@ export const seed_data = {
         be_inv_prefix: "INV-",
         be_inv_integer: 2501,
         be_inv_integer_max: 2501,
+        be_default_tax_id: "tax_hst", // CA default sales tax (HST 13%); null for US
         be_show_paid_stamp: true, // Show "Paid" stamp on invoices by default
 
         be_plan_id: "plan25_1",
@@ -475,7 +476,7 @@ export const seed_data = {
 
             inv_subtotal: 240.00,
             inv_discount: 0.0,
-            inv_tax_label: "Tax",
+            inv_tax_label: null,
             inv_tax_rate: 0.0,
             inv_tax_amount: 0.0,
             inv_shipping: 0.0,
@@ -564,8 +565,8 @@ export const seed_data = {
 
             inv_subtotal: 1500.00,
             inv_discount: 0.0,
-            inv_tax_label: "Tax",
-            inv_tax_rate: 0.13,
+            inv_tax_label: "HST",
+            inv_tax_rate: 13,
             inv_tax_amount: 195.00,
             inv_shipping: 0.0,
             inv_handling: 0.0,
@@ -654,7 +655,7 @@ export const seed_data = {
 
             inv_subtotal: 2.00,
             inv_discount: 0.0,
-            inv_tax_label: "Tax",
+            inv_tax_label: null,
             inv_tax_rate: 0.0,
             inv_tax_amount: 0.0,
             inv_shipping: 0.0,

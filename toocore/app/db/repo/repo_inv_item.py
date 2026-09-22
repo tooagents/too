@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import List
 from uuid import UUID
 
-from sqlalchemy import insert, select
+from sqlalchemy import delete, insert, select
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from app.db.models.inv.i_nvoice_item import InvoiceItemDB
@@ -18,6 +18,12 @@ async def list_invoice_items(db: AsyncConnection, inv_id: UUID) -> List[InvoiceI
         .order_by(table.c.created_at.desc())
     )
     return models_from_mappings(InvoiceItemDB, list(result.mappings().all()))
+
+
+async def delete_invoice_items(db: AsyncConnection, inv_id: UUID) -> None:
+    """Hard-delete every line item for an invoice (used to resync on save)."""
+    table = InvoiceItemDB.__table__
+    await db.execute(delete(table).where(table.c.inv_id == inv_id))
 
 
 async def create_invoice_item(db: AsyncConnection, payload: dict) -> InvoiceItemDB:

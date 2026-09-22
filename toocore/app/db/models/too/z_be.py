@@ -39,6 +39,11 @@ class ZBizEntityDB(Base, BaseMixin):
     be_inv_integer: Mapped[int | None] = mapped_column(Integer)
     be_inv_integer_max: Mapped[int | None] = mapped_column(Integer)
 
+    # Business-level default sales tax for new invoices: references itax.id.
+    # Null means "No tax" (the prior behaviour). New invoices seed their tax
+    # from this preset; the invoice still stores its own label+rate copy.
+    be_default_tax_id: Mapped[UUID | None] = mapped_column(Uuid, nullable=True)
+
     be_show_paid_stamp: Mapped[bool | None] = mapped_column(Boolean, default=True)
 
     be_plan_id: Mapped[UUID | None] = mapped_column(Uuid,nullable=True,)

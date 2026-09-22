@@ -22,6 +22,7 @@ from app.db.models.too.z_user import ZUserDB
 from app.db.seed.seed_coa import default_coa_seed_version, default_coa_templates
 from app.db.seed.seed_catalog import (
     BIZ_DEFAULTS,
+    CA_DEFAULT_TAX_SEED_KEY,
     CLIENT_TEMPLATES,
     FEE_TEMPLATES,
     INVOICE_TEMPLATES,
@@ -288,6 +289,15 @@ async def apply_seed_defaults(
         "be_date_format": BIZ_DEFAULTS.be_date_format,
         "be_timezone": BIZ_DEFAULTS.be_timezone,
         "be_inv_tnc": BIZ_DEFAULTS.be_inv_tnc,
+        "country": BIZ_DEFAULTS.country,
+        # Default sales tax for new invoices. CA -> the seeded HST preset (13%);
+        # US and elsewhere have no national rate, so leave it unset ("No tax").
+        # HST shares the same deterministic id the tax preset is seeded with.
+        "be_default_tax_id": (
+            _seed_uuid(zuid, CA_DEFAULT_TAX_SEED_KEY)
+            if BIZ_DEFAULTS.country == "CA"
+            else None
+        ),
         "extra": _seed_extra("biz_default"),
     }
 

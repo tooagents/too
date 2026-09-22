@@ -27,6 +27,7 @@ class SeedBizDefaults:
     be_date_format: str
     be_timezone: str
     be_inv_tnc: str
+    country: str
 
 
 BIZ_DEFAULTS = SeedBizDefaults(
@@ -40,7 +41,13 @@ BIZ_DEFAULTS = SeedBizDefaults(
     be_date_format="MM/DD/YYYY",
     be_timezone="America/Toronto",
     be_inv_tnc=DEFAULT_INV_TNC,
+    # Tax jurisdiction for the seeded business. Drives be_default_tax_id:
+    # CA -> HST (13%); anything else (incl. US) -> no default (see ser_seed).
+    country="CA",
 )
+
+# seed_key of the tax preset used as the default when country == "CA".
+CA_DEFAULT_TAX_SEED_KEY = "tax_hst"
 
 
 CLIENT_TEMPLATES: list[dict[str, Any]] = [
@@ -203,7 +210,7 @@ INVOICE_TEMPLATES: list[dict[str, Any]] = [
         "inv_due_date": datetime.now(timezone.utc),
         "inv_subtotal": 240.00,
         "inv_discount": 0.00,
-        "inv_tax_label": "Tax",
+        "inv_tax_label": None,
         "inv_tax_rate": 0.00,
         "inv_tax_amount": 0.00,
         "inv_shipping": 0.00,
@@ -245,8 +252,8 @@ INVOICE_TEMPLATES: list[dict[str, Any]] = [
         "inv_due_date": datetime.now(timezone.utc),
         "inv_subtotal": 1500.00,
         "inv_discount": 0.00,
-        "inv_tax_label": "Tax",
-        "inv_tax_rate": 0.13,
+        "inv_tax_label": "HST",
+        "inv_tax_rate": 13.0,
         "inv_tax_amount": 195.00,
         "inv_shipping": 0.00,
         "inv_handling": 0.00,
