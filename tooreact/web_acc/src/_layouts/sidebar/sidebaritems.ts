@@ -49,7 +49,7 @@ const SidebarContent: MenuItem[] = [
 
 
     {
-        heading: 'AI Accounting',
+        heading: 'Accounting',
         children: [
             {
                 name: 'Invoice',
@@ -94,6 +94,35 @@ const SidebarContent: MenuItem[] = [
             },
 
 
+        ],
+    },
+    {
+        heading: 'Payroll',
+        children: [
+            {
+                name: 'Run Payroll',
+                icon: 'solar:wallet-money-linear',
+                id: uniqueId(),
+                url: '/app/payroll/entry',
+            },
+            {
+                name: 'Payroll History',
+                icon: 'solar:history-linear',
+                id: uniqueId(),
+                url: '/app/payroll/history',
+            },
+            {
+                name: 'Schedules',
+                icon: 'solar:calendar-linear',
+                id: uniqueId(),
+                url: '/app/payroll/schedule',
+            },
+            {
+                name: 'Employees',
+                icon: 'solar:user-id-linear',
+                id: uniqueId(),
+                url: '/app/settings/employee',
+            },
         ],
     },
     {

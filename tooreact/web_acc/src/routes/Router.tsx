@@ -45,11 +45,16 @@ const BillingCancel = Loadable(lazy(() => import('src/settings/billing/BillingCa
 /* =========================Biz========================= */
 const Employee = Loadable(lazy(() => import('src/settings/employees/Employee')));
 const COA = Loadable(lazy(() => import('src/settings/coa/COA')));
-const PayrollScheduleEntrance = Loadable(lazy(() => import('src/accounting/schedule/PayrollSchedule')));
 const PayrollHistoryList = Loadable(lazy(() => import('src/accounting/history/PayrollHistoryList')));
 const PayrollHistoryDetail = Loadable(lazy(() => import('src/accounting/history/PayrollHistoryDetail')));
 const Ledger = Loadable(lazy(() => import('src/accounting/ledger/Ledger')));
 const Reports = Loadable(lazy(() => import('src/accounting/reports/Reports')));
+
+/* ===================== Payroll (ported from web_t4) ===================== */
+const RunPayroll = Loadable(lazy(() => import('src/_payroll/entry/PayrollEntry')));
+const PayrollHistoryPage = Loadable(lazy(() => import('src/_payroll/history/PayrollHistoryList')));
+const PayrollHistoryDetailPage = Loadable(lazy(() => import('src/_payroll/history/PayrollHistoryDetail')));
+const PayrollSchedulePage = Loadable(lazy(() => import('src/_payroll/schedule/PayrollSchedule')));
 
 const Notes = Loadable(lazy(() => import('src/_support/notes/Notes')));
 const Form = Loadable(lazy(() => import('src/components/form/Form')));
@@ -100,7 +105,11 @@ const router = createBrowserRouter([
                     { path: 'acc/je/:id', element: <PayrollHistoryDetail /> },
                     { path: 'acc/ledger', element: <Ledger /> },
                     { path: 'acc/reports', element: <Reports /> },
-                    { path: 'payroll/schedule', element: <PayrollScheduleEntrance /> },
+
+                    { path: 'payroll/entry', element: <RunPayroll /> },
+                    { path: 'payroll/history', element: <PayrollHistoryPage /> },
+                    { path: 'payroll/history/:id', element: <PayrollHistoryDetailPage /> },
+                    { path: 'payroll/schedule', element: <PayrollSchedulePage /> },
 
                     { path: 'utilities/form', element: <Form /> },
 

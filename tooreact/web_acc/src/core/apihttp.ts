@@ -4,9 +4,15 @@ import { notifyToast } from 'src/core/toast';
 import { waitForAuthReady } from 'src/store/auth-store';
 
 const API_BASE_URL = config.api.baseUrl;
+const API_GZ_URL = config.api.baseGZUrl;
 
-export async function apiFetch(path: string, options: RequestInit = {}): Promise<Response> {
+type ApiFetchOptions = RequestInit & {
+    baseUrl?: string;
+};
+
+export async function apiFetch(path: string, options: ApiFetchOptions = {}): Promise<Response> {
     let token: string | undefined;
+    const { baseUrl, ...requestOptions } = options;
 
     await waitForAuthReady();
 
@@ -16,18 +22,19 @@ export async function apiFetch(path: string, options: RequestInit = {}): Promise
         console.error('Failed to refresh access token:', error);
     }
 
-    const headers = new Headers(options.headers || {});
+    const headers = new Headers(requestOptions.headers || {});
 
     // Only set JSON content-type if body is not a FormData instance
-    if (!(options.body instanceof FormData) && !headers.has('Content-Type')) {
+    if (!(requestOptions.body instanceof FormData) && !headers.has('Content-Type')) {
         headers.set('Content-Type', 'application/json');
     }
 
     if (token) { headers.set('Authorization', `Bearer ${token}`); }
 
     const prefix = path.startsWith('/') ? '' : '/';
-    const res = await fetch(`${API_BASE_URL}${prefix}${path}`, {
-        ...options,
+    const resolvedBaseUrl = baseUrl ?? API_BASE_URL;
+    const res = await fetch(`${resolvedBaseUrl}${prefix}${path}`, {
+        ...requestOptions,
         headers,
     });
 
@@ -44,6 +51,10 @@ export async function apiFetch(path: string, options: RequestInit = {}): Promise
     }
 
     return res;
+}
+
+export async function apiFetchGZ(path: string, options: RequestInit = {}): Promise<Response> {
+    return apiFetch(path, { ...options, baseUrl: API_GZ_URL });
 }
 
 export async function apiGetJson<T>(path: string): Promise<T> {
