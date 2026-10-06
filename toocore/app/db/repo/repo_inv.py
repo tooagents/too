@@ -57,6 +57,27 @@ async def list_recent_invoices_by_client(
     return models_from_mappings(InvoiceDB, list(result.mappings().all()))
 
 
+async def invoice_number_exists(db: AsyncConnection, inv_number: str) -> bool:
+    """True when a non-deleted invoice already uses this number for the tenant.
+
+    Mirrors the partial unique index uq_too_inv_invoice_ten_number (ten_id,
+    inv_number WHERE is_deleted IS NOT TRUE AND inv_number IS NOT NULL); tenant
+    scoping comes from the RLS connection. Used to skip numbers that are already
+    taken when auto-generating the next one, now that numbers are user-editable
+    and the stored counter can collide with a hand-entered number.
+    """
+    if not inv_number:
+        return False
+    table = InvoiceDB.__table__
+    result = await db.execute(
+        select(table.c.id)
+        .where(table.c.inv_number == inv_number)
+        .where(table.c.is_deleted.is_not(True))
+        .limit(1)
+    )
+    return result.first() is not None
+
+
 async def get_invoice_by_id(db: AsyncConnection, inv_id: UUID) -> Optional[InvoiceDB]:
     table = InvoiceDB.__table__
     result = await db.execute(select(table).where(table.c.id == inv_id))

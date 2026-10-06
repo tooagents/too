@@ -15,8 +15,8 @@ from app.db.models.inv.i_nvoice_item import InvoiceItemDB
 from app.db.models.inv.i_nvoice_payment import InvoicePaymentDB
 from app.db.models.too.z_be import ZBizEntityDB
 from app.db.repo.repo_inv_item import create_invoice_item, delete_invoice_items, list_invoice_items
-from app.db.repo.repo_inv import (create_invoice,get_invoice_by_id,list_invoices,
-                                  list_recent_invoices_by_client,update_invoice_fields,)
+from app.db.repo.repo_inv import (create_invoice,get_invoice_by_id,invoice_number_exists,
+                                  list_invoices,list_recent_invoices_by_client,update_invoice_fields,)
 from app.db.repo.repo_inv_payment import (create_invoice_payment,list_invoice_payments,)
 from app.db.repo.repo_inv_payment import (delete_invoice_payment,get_invoice_payment_by_id,)
 from app.schemas.sch_ai import JWType
@@ -82,6 +82,16 @@ async def _next_invoice_number(zjwt: JWType, db: AsyncConnection) -> str | None:
 
     prefix = row["be_inv_prefix"] or "INV-"
     current = row["be_inv_integer"] or row["be_inv_integer_max"] or 1
+
+    # Invoice numbers are user-editable, so the stored counter can collide with a
+    # hand-entered number. Advance past any number already in use for the tenant
+    # so the generated one is unique — otherwise the insert hits the partial
+    # unique index uq_too_inv_invoice_ten_number and 500s (notably on duplicate).
+    candidate = f"{prefix}{current}"
+    while await invoice_number_exists(db, candidate):
+        current += 1
+        candidate = f"{prefix}{current}"
+
     next_value = current + 1
     await db.execute(
         update(table)
@@ -91,7 +101,7 @@ async def _next_invoice_number(zjwt: JWType, db: AsyncConnection) -> str | None:
             be_inv_integer_max=max(next_value, row["be_inv_integer_max"] or next_value),
         )
     )
-    return f"{prefix}{current}"
+    return candidate
 
 
 async def fetch_invoice_by_id(zjwt: JWType, db: AsyncConnection, inv_id: UUID) -> InvoiceAggregate | None:
@@ -315,6 +325,10 @@ async def duplicate_invoice(zjwt: JWType, db: AsyncConnection, inv_id: UUID) -> 
             "inv_paid_total": 0,
             "inv_balance_due": source.invoice.inv_total,
             "inv_payment_status": "unpaid",
+            # Reconciliation is the original's bank-match record; a new unpaid
+            # clone can't already be matched to a deposit.
+            "is_reconciled": False,
+            "reconciled_bank_txn_id": None,
             "is_deleted": False,
             "is_flag": False,
         }
