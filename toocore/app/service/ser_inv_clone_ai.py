@@ -22,46 +22,14 @@ from __future__ import annotations
 
 import json
 import logging
-import re
 from datetime import date
 from typing import Any
 
-from google import genai
-from google.genai import types
-
-from app.config import get_settings_singleton
+# Reuse the bank AI's shared model rotation so this path uses the same provider
+# (Groq by default) and never has its own private Gemini client to drift.
+from app.service.acc.o_bank_ai import _generate_json
 
 logger = logging.getLogger(__name__)
-
-settings = get_settings_singleton()
-
-# Reuse the same working model the bank AI uses (BANK_AI_MODEL_ID =
-# "gemini-flash-latest"); the OCR default "gemini-2.5-flash" 404s for this key.
-CLONE_AI_MODEL_ID = (
-    getattr(settings, "INV_AI_MODEL_ID", None)
-    or getattr(settings, "BANK_AI_MODEL_ID", None)
-    or "gemini-flash-latest"
-)
-
-_client: genai.Client | None = None
-
-
-def _get_client() -> genai.Client | None:
-    """Lazily build the Gemini client; return None when no key is configured."""
-    global _client
-    if _client is None:
-        if not settings.GEMINI_API_KEY:
-            return None
-        _client = genai.Client(api_key=settings.GEMINI_API_KEY)
-    return _client
-
-
-def _strip_json_fences(text: str) -> str:
-    stripped = (text or "").strip()
-    if stripped.startswith("```"):
-        stripped = re.sub(r"^```[a-zA-Z]*\n?", "", stripped)
-        stripped = re.sub(r"\n?```$", "", stripped)
-    return stripped.strip()
 
 
 _SYSTEM_INSTRUCTION = (
@@ -131,13 +99,6 @@ async def suggest_next_period(recent: list[dict[str, Any]]) -> dict[str, Any] | 
         logger.info("inv smart-clone: no recent invoices -> verbatim copy")
         return None
 
-    client = _get_client()
-    if client is None:
-        logger.warning(
-            "inv smart-clone: GEMINI_API_KEY not configured -> verbatim copy"
-        )
-        return None
-
     prompt = (
         "Recent invoices (newest first):\n"
         f"{json.dumps(recent, ensure_ascii=False, indent=2)}\n\n"
@@ -145,30 +106,23 @@ async def suggest_next_period(recent: list[dict[str, Any]]) -> dict[str, Any] | 
     )
 
     logger.info(
-        "inv smart-clone: -> Gemini model=%s, %d recent invoice(s): %s",
-        CLONE_AI_MODEL_ID,
+        "inv smart-clone: -> AI, %d recent invoice(s): %s",
         len(recent),
         json.dumps(recent, ensure_ascii=False),
     )
 
+    # Shared rotation (Groq by default); returns ("", model) on any failure and
+    # raises only when no provider is configured. Either way we fall back to a
+    # verbatim copy, so cloning never breaks on an AI hiccup.
     try:
-        response = await client.aio.models.generate_content(
-            model=CLONE_AI_MODEL_ID,
-            contents=prompt,
-            config=types.GenerateContentConfig(
-                system_instruction=_SYSTEM_INSTRUCTION,
-                temperature=0,
-                response_mime_type="application/json",
-            ),
-        )
+        raw, model_used = await _generate_json(prompt, _SYSTEM_INSTRUCTION)
     except Exception as exc:  # noqa: BLE001 - any provider failure -> verbatim fallback
-        logger.warning("inv smart-clone: Gemini call failed (%s) -> verbatim copy", exc)
+        logger.warning("inv smart-clone: AI call failed (%s) -> verbatim copy", exc)
         return None
 
-    logger.info("inv smart-clone: <- Gemini raw response: %r", response.text)
-    raw = _strip_json_fences(response.text or "")
+    logger.info("inv smart-clone: <- %s raw response: %r", model_used, raw)
     if not raw:
-        logger.warning("inv smart-clone: Gemini returned empty content -> verbatim copy")
+        logger.warning("inv smart-clone: AI returned empty content -> verbatim copy")
         return None
     try:
         parsed = json.loads(raw)

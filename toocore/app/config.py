@@ -41,20 +41,22 @@ class _Settings(BaseSettings):
     BANK_AI_GEMINI_FALLBACKS: list[str] = ["gemini-3.5-flash"]
     # Per-model transient-error retries (503/429/timeout) with backoff.
     BANK_AI_MAX_RETRIES: int = 2
-    # Groq — free, fast, OpenAI-compatible — is the cross-provider fallback used
-    # when every Gemini attempt fails. No key => Groq step is skipped.
+    # Groq — free, fast, OpenAI-compatible — is now the primary AI provider (the
+    # Gemini flash models were returning empty responses). No key => Groq is
+    # skipped. gpt-oss-120b matches the divcore deployment's primary model.
     GROQ_API_KEY: str = ""
     GROQ_BASE_URL: str = "https://api.groq.com/openai/v1"
-    GROQ_MODEL_ID: str = "llama-3.3-70b-versatile"
+    GROQ_MODEL_ID: str = "openai/gpt-oss-120b"
     # The AI model rotation ring (hard round-robin). Every AI call uses the NEXT
     # model and advances one shared global cursor, so consecutive calls never hit
     # the same model. Extend this list (to any length) to add models. Each entry is
     # "provider:model_id"; supported providers: "gemini", "groq". A model whose
     # provider has no API key is skipped.
+    # Groq-only ring (mirrors divcore): two Groq models so a single model hiccup
+    # rotates to the other instead of falling back to the broken Gemini flashes.
     AI_ROTATION_MODELS: list[str] = [
+        "groq:openai/gpt-oss-120b",
         "groq:llama-3.3-70b-versatile",
-        "gemini:gemini-3.6-flash",
-        "gemini:gemini-3.5-flash",
     ]
     GH_OPENAI_API_KEY: str = ""
     GH_OPENAI_BASE_URL: str = "https://models.github.ai/inference"
