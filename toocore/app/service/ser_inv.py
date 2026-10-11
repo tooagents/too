@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import re
 from dataclasses import dataclass
 from datetime import date, datetime, timezone
 from decimal import Decimal
@@ -16,7 +17,8 @@ from app.db.models.inv.i_nvoice_payment import InvoicePaymentDB
 from app.db.models.too.z_be import ZBizEntityDB
 from app.db.repo.repo_inv_item import create_invoice_item, delete_invoice_items, list_invoice_items
 from app.db.repo.repo_inv import (create_invoice,get_invoice_by_id,invoice_number_exists,
-                                  list_invoices,list_recent_invoices_by_client,update_invoice_fields,)
+                                  list_invoices,list_recent_invoices_by_client,
+                                  max_invoice_integer_for_prefix,update_invoice_fields,)
 from app.db.repo.repo_inv_payment import (create_invoice_payment,list_invoice_payments,)
 from app.db.repo.repo_inv_payment import (delete_invoice_payment,get_invoice_payment_by_id,)
 from app.schemas.sch_ai import JWType
@@ -69,6 +71,45 @@ def _base_ids(zjwt: JWType) -> dict[str, UUID|None]:
     }
 
 
+_TRAILING_INT_RE = re.compile(r"^(.*?)(\d+)$")
+
+
+def _split_inv_number(inv_number: Any) -> tuple[str, int, int] | None:
+    """Split an invoice number into ``(prefix, integer, width)``.
+
+    ``INV-20264527`` -> ``("INV-", 20264527, 8)``; ``MO_25336`` -> ``("MO_",
+    25336, 5)``. ``width`` is the digit count so zero-padding is preserved when
+    advancing (``MO_00042`` -> ``MO_00043``). Returns ``None`` when the number
+    has no trailing digits to advance.
+    """
+    m = _TRAILING_INT_RE.match(str(inv_number or ""))
+    if not m:
+        return None
+    prefix, digits = m.group(1), m.group(2)
+    return prefix, int(digits), len(digits)
+
+
+async def _resolve_next_number(
+    db: AsyncConnection, prefix: str, fallback_start: int, width: int = 0
+) -> tuple[str, int]:
+    """Next free number for ``prefix``: biggest number in use + 1.
+
+    Bases the number on the biggest number ACTUALLY in use for this tenant +
+    prefix — not a stored counter, which drifts now that numbers are user-
+    editable. Falls back to ``fallback_start`` only when the prefix has no
+    invoices yet (so a configured starting number is still honoured). The loop
+    is a uniqueness safety net against the partial unique index
+    uq_too_inv_invoice_ten_number. Returns ``(candidate, used_integer)``.
+    """
+    biggest = await max_invoice_integer_for_prefix(db, prefix)
+    current = biggest + 1 if biggest is not None else fallback_start
+    candidate = f"{prefix}{current:0{width}d}"
+    while await invoice_number_exists(db, candidate):
+        current += 1
+        candidate = f"{prefix}{current:0{width}d}"
+    return candidate, current
+
+
 async def _next_invoice_number(zjwt: JWType, db: AsyncConnection) -> str | None:
     table = ZBizEntityDB.__table__
     result = await db.execute(
@@ -81,26 +122,61 @@ async def _next_invoice_number(zjwt: JWType, db: AsyncConnection) -> str | None:
         return None
 
     prefix = row["be_inv_prefix"] or "INV-"
-    current = row["be_inv_integer"] or row["be_inv_integer_max"] or 1
+    fallback_start = row["be_inv_integer"] or row["be_inv_integer_max"] or 1
+    candidate, used = await _resolve_next_number(db, prefix, fallback_start)
 
-    # Invoice numbers are user-editable, so the stored counter can collide with a
-    # hand-entered number. Advance past any number already in use for the tenant
-    # so the generated one is unique — otherwise the insert hits the partial
-    # unique index uq_too_inv_invoice_ten_number and 500s (notably on duplicate).
-    candidate = f"{prefix}{current}"
-    while await invoice_number_exists(db, candidate):
-        current += 1
-        candidate = f"{prefix}{current}"
-
-    next_value = current + 1
+    # Resync the stored counter to the biggest number now in use (= the number we
+    # just handed out). Numbers are user-editable, so the counter must track the
+    # invoices table rather than compounding its own +1 and drifting away from it.
     await db.execute(
         update(table)
         .where(table.c.id == zjwt.zuid)
         .values(
-            be_inv_integer=next_value,
-            be_inv_integer_max=max(next_value, row["be_inv_integer_max"] or next_value),
+            be_inv_integer=used,
+            be_inv_integer_max=max(used, row["be_inv_integer_max"] or used),
         )
     )
+    return candidate
+
+
+async def peek_next_invoice_number(zjwt: JWType, db: AsyncConnection) -> str | None:
+    """The next number for a new invoice WITHOUT advancing any counter.
+
+    Lets the editor pre-fill the number it will save. Same derivation as
+    :func:`_next_invoice_number` (biggest number in use + 1) so the pre-filled
+    value matches what the server would generate; the actual assignment and
+    counter resync happen on save.
+    """
+    table = ZBizEntityDB.__table__
+    result = await db.execute(
+        select(table.c.be_inv_prefix, table.c.be_inv_integer, table.c.be_inv_integer_max)
+        .where(table.c.id == zjwt.zuid)
+    )
+    row = result.mappings().one_or_none()
+    if not row:
+        return None
+    prefix = row["be_inv_prefix"] or "INV-"
+    fallback_start = row["be_inv_integer"] or row["be_inv_integer_max"] or 1
+    candidate, _ = await _resolve_next_number(db, prefix, fallback_start)
+    return candidate
+
+
+async def _next_clone_invoice_number(
+    zjwt: JWType, db: AsyncConnection, source_number: Any
+) -> str | None:
+    """Next number for a clone, following the SOURCE invoice's pattern.
+
+    A clone of ``MO_25336`` becomes ``MO_25337`` — the prefix and zero-padding
+    come from the document it was cloned from, not the org default. Falls back to
+    the org default generator when the source number has no trailing digits.
+    """
+    split = _split_inv_number(source_number)
+    if not split:
+        return await _next_invoice_number(zjwt, db)
+    prefix, source_int, width = split
+    # The source itself carries this prefix, so biggest-in-use already clears it;
+    # source_int + 1 only applies when (somehow) no invoice matches the prefix.
+    candidate, _ = await _resolve_next_number(db, prefix, source_int + 1, width)
     return candidate
 
 
@@ -319,7 +395,9 @@ async def duplicate_invoice(zjwt: JWType, db: AsyncConnection, inv_id: UUID) -> 
     invoice_payload.update(
         {
             **_base_ids(zjwt),
-            "inv_number": await _next_invoice_number(zjwt, db),
+            # Follow the source document's own numbering pattern (prefix + width),
+            # e.g. MO_25336 -> MO_25337, not the org default INV- series.
+            "inv_number": await _next_clone_invoice_number(zjwt, db, source.invoice.inv_number),
             # Payment info belongs to the original issue, never the fresh clone.
             "inv_deposit": 0,
             "inv_paid_total": 0,

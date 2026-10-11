@@ -322,16 +322,16 @@ export const oInvAPI = {
         }
     },
 
-    // Next invoice number from the business entity (be_inv_prefix + be_inv_integer),
-    // the same source the Android form auto-fills from. '' if it can't be read.
+    // Next invoice number, computed server-side as the biggest number actually
+    // in use + 1. Numbers are user-editable, so the stored counter can drift out
+    // of sync with the invoices table; the server derives from the table. '' if
+    // it can't be read.
     async getNextInvoiceNumber(): Promise<string> {
         try {
-            const response = await apiFetch('/too/getbe');
+            const response = await apiFetch('/inv/next_number');
             if (!response.ok) return '';
-            const be = await response.json();
-            const prefix = be?.be_inv_prefix ?? 'INV-';
-            const n = be?.be_inv_integer ?? be?.be_inv_integer_max ?? 1;
-            return `${prefix}${n}`;
+            const data = await response.json();
+            return data?.inv_number ?? '';
         } catch {
             return '';
         }

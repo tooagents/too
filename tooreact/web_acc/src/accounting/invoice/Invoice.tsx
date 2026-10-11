@@ -350,9 +350,13 @@ const Invoice = () => {
         setError(null);
         setMsg(null);
         try {
-            await oInvAPI.cloneInvoice(inv.inv_id);
+            const created = await oInvAPI.cloneInvoice(inv.inv_id);
             setMsg('Invoice cloned.');
             await refresh();
+            // Move the detail pane / selection to the fresh clone, not the source
+            // it was cloned from. The keep-valid-selection effect preserves this
+            // because the clone is now in the refreshed list.
+            if (created?.inv_id) setSelectedId(created.inv_id);
         } catch (e: any) {
             setError(e?.message || 'Failed to clone invoice.');
         } finally {

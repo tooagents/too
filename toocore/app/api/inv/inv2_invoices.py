@@ -17,6 +17,7 @@ from app.schemas.sch_inv import InvCreate, InvOut, InvPaymentCreate, InvPaymentO
 from app.service.ser_inv import (create_or_update_invoice, create_inv_payment,
                                  delete_inv_payment, duplicate_invoice,
                                  fetch_invoice_by_id, fetch_invoice_payments, fetch_invoices,
+                                 peek_next_invoice_number,
                                  recalculate_invoice_payment_summary, soft_delete_invoice,)
 
 inv2Rou = APIRouter()
@@ -161,6 +162,20 @@ async def get_invoice_one(
     out.inv_items = [_to_item_out(item) for item in inv.items]
     out.inv_payments = [_to_payment_out(payment).model_dump() for payment in inv.payments]
     return out
+
+
+@inv2Rou.get("/next_number")
+async def get_next_invoice_number(
+    zjwt: JWType = Depends(get_zjwt),
+    db: AsyncConnection = Depends(get_rls_conn),
+):
+    """Next invoice number for a new invoice (biggest number in use + 1).
+
+    Peek only — does not advance the counter; the number is assigned for real on
+    save. The editor uses this to pre-fill the number field.
+    """
+    number = await peek_next_invoice_number(zjwt, db)
+    return {"inv_number": number or ""}
 
 
 @inv2Rou.post("/post_inv_one", response_model=InvOut)

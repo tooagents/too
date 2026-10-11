@@ -57,6 +57,45 @@ async def list_recent_invoices_by_client(
     return models_from_mappings(InvoiceDB, list(result.mappings().all()))
 
 
+def _like_escape(text: str) -> str:
+    """Escape LIKE wildcards so a prefix is matched literally.
+
+    Prefixes legitimately contain ``_`` (e.g. ``MO_``), which is a single-char
+    LIKE wildcard; without escaping, ``MO_%`` would also match ``MOX...``.
+    """
+    return text.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+
+
+async def max_invoice_integer_for_prefix(db: AsyncConnection, prefix: str) -> int | None:
+    """Largest trailing integer among non-deleted invoices whose number is this
+    ``prefix`` immediately followed by digits, for the current tenant.
+
+    Tenant scoping comes from the RLS connection. Returns ``None`` when nothing
+    matches. Used to base the next auto-generated number on the biggest number
+    ACTUALLY in use rather than a stored counter that can drift out of sync with
+    the invoices table (ahead when the latest invoices are deleted, behind when
+    numbers are hand-edited larger).
+    """
+    table = InvoiceDB.__table__
+    result = await db.execute(
+        select(table.c.inv_number)
+        .where(table.c.is_deleted.is_not(True))
+        .where(table.c.inv_number.is_not(None))
+        .where(table.c.inv_number.like(f"{_like_escape(prefix)}%", escape="\\"))
+    )
+    biggest: int | None = None
+    for (number,) in result.all():
+        # LIKE narrows the scan; this confirms an exact prefix + pure-digit tail.
+        if not number or not number.startswith(prefix):
+            continue
+        suffix = number[len(prefix):]
+        if suffix.isdigit():
+            value = int(suffix)
+            if biggest is None or value > biggest:
+                biggest = value
+    return biggest
+
+
 async def invoice_number_exists(db: AsyncConnection, inv_number: str) -> bool:
     """True when a non-deleted invoice already uses this number for the tenant.
 
