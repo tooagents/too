@@ -33,3 +33,16 @@ GenAI 在这里是表现层，不是决策层。它不改变 RL 的推荐，只�
 RL 已经 work 了，就别动它。GenAI 接在它后面，做交互和解释。这是风险最低、收益最明确的路径。
 
 先用 RL Framework 训出一个决策内核，再用 GenAI Agent 包一层交互外壳。
+
+
+
+这七个维度里，其实混了两类东西：
+
+维度	角色	说明
+Age	状态	客户特征
+Tax Filing Status	状态	客户特征
+Income	状态	客户特征
+Debt	状态	客户特征
+Household Income	状态	客户特征
+Risk Profile	状态	客户特征（也可能是 LLM 推断出来的）
+Investment Strategies	动作	这是 Agent 要推荐的东西，不是输入
