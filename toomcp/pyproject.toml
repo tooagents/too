@@ -1,0 +1,13 @@
+[project]
+name = "toomcp"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi[standard]>=0.136.1",
+    "httpx>=0.28.1",
+    "bearerbridge==0.1.0",
+]
+
+[tool.uv]
+package = false
+

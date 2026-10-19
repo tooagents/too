@@ -1,0 +1,17 @@
+INFO:     Started server process [25420]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8002 (Press CTRL+C to quit)
+
+
+
+
+798vl
+[May 02 20:16:50]
+httpx.HTTPStatusError: Client error '404 Not Found' for url 
+
+'https://fastapi4toomcp.fastapicloud.dev/vendors/lookup?name=acme+supplies'
+
+798vl
+[May 02 20:16:50]
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404
