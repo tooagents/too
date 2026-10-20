@@ -3,6 +3,7 @@ import type { Selection, KnowledgeData } from './types';
 import { buildTree, type FlatNode } from './components/buildTree';
 import Sidebar from './components/Sidebar';
 import MainArea from './components/MainArea';
+import { apiBaseUrl } from './config/app';
 
 export default function App() {
     // ⬇️ 唯一的结构改动：数据从 useState 空对象起步，useEffect 拉接口
@@ -18,7 +19,7 @@ export default function App() {
 
     // ⬇️ 拉数据 + 组树 + 初始化 selection 到第一个大类/小类/小小类
     useEffect(() => {
-        fetch('/api/wiki/tree', { credentials: 'include' })
+        fetch(`${apiBaseUrl}/wiki/tree`)
             .then(r => {
                 if (!r.ok) throw new Error(`HTTP ${r.status}`);
                 return r.json();
