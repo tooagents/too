@@ -5,6 +5,7 @@ import Sidebar from './components/Sidebar';
 import MainArea from './components/MainArea';
 import { apiBaseUrl } from './config/app';
 
+
 export default function App() {
     // ⬇️ 唯一的结构改动：数据从 useState 空对象起步，useEffect 拉接口
     const [tree, setTree] = useState<KnowledgeData>({});
