@@ -9,11 +9,12 @@ interface MainAreaProps {
     category?: Category;
     sub?: SubCategory;
     topic?: Topic;
+    navigationVersion: number;
     onSelectTopic: (topicId: string) => void;
     onCardSaved: (cardId: string, title: string, content: string) => void;
 }
 
-export default function MainArea({ category, sub, topic, onSelectTopic, onCardSaved }: MainAreaProps) {
+export default function MainArea({ category, sub, topic, navigationVersion, onSelectTopic, onCardSaved }: MainAreaProps) {
     const [selectedCard, setSelectedCard] = useState<Card | null>(null);
     const [editing, setEditing] = useState(false);
     const [titleDraft, setTitleDraft] = useState('');
@@ -25,7 +26,7 @@ export default function MainArea({ category, sub, topic, onSelectTopic, onCardSa
         setSelectedCard(null);
         setEditing(false);
         setSaveError(null);
-    }, [topic?.id]);
+    }, [topic?.id, navigationVersion]);
 
     if (!sub || !category) return null;
 

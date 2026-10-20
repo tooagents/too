@@ -9,6 +9,7 @@ export default function App() {
     const [tree, setTree] = useState<KnowledgeData>({});
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [navigationVersion, setNavigationVersion] = useState(0);
     const [selection, setSelection] = useState<Selection>({ category: '', sub: '', topic: null });
 
     useEffect(() => {
@@ -50,6 +51,7 @@ export default function App() {
     const handleSelectSub = (categoryKey: string, subId: string) => {
         const sub = tree[categoryKey]?.subcategories.find(item => item.id === subId);
         setSelection({ category: categoryKey, sub: subId, topic: sub?.topics[0]?.id ?? null });
+        setNavigationVersion(version => version + 1);
     };
 
     const handleCardSaved = (cardId: string, title: string, content: string) => {
@@ -87,6 +89,7 @@ export default function App() {
                 category={currentCategory}
                 sub={currentSub}
                 topic={currentTopic}
+                navigationVersion={navigationVersion}
                 onSelectTopic={topicId => setSelection(previous => ({ ...previous, topic: topicId }))}
                 onCardSaved={handleCardSaved}
             />
