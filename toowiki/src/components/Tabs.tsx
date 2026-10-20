@@ -8,7 +8,7 @@ interface TabsProps {
 
 export default function Tabs({ topics, activeId, onSelect }: TabsProps) {
     if (topics.length === 0) {
-        return <div className="px-7 text-slate-400 text-sm">该小类暂无内容</div>;
+        return <div className="px-7 text-slate-400 text-sm">No topics in this section yet.</div>;
     }
 
     return (

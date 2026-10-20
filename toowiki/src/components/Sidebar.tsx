@@ -25,7 +25,7 @@ export default function Sidebar({ data, selection, onSelectSub }: SidebarProps) 
         <aside className="w-72 shrink-0 bg-slate-50 border-r border-slate-200 flex flex-col overflow-y-auto p-3">
             <div className="flex items-center gap-2 px-3 pb-4 mb-4 border-b border-slate-200">
                 <BookOpen className="w-7 h-7 text-blue-600 bg-white p-1.5 rounded-lg" />
-                <span className="font-bold text-lg text-slate-900">Wiki·知识库</span>
+                <span className="font-bold text-lg text-slate-900">Knowledge Base</span>
             </div>
 
             {Object.entries(data).map(([catKey, cat]) => {

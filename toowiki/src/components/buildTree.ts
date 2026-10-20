@@ -2,7 +2,7 @@ import * as Lucide from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import type { KnowledgeData, SubCategory, Topic, Card } from '../types';
 
-/** 后端返回的扁平节点 */
+/** Flat node returned by the API. */
 export interface FlatNode {
     id: number;
     parent_id: number | null;
@@ -16,20 +16,20 @@ export interface FlatNode {
 
 const IconMap = Lucide as unknown as Record<string, LucideIcon>;
 
-/** 数据库存的 icon 名 → lucide 组件，找不到就用 FileQuestion 兜底 */
+/** Map the stored icon name to a Lucide component, with FileQuestion as fallback. */
 function toIcon(name: string | null): LucideIcon {
     return (name && IconMap[name]) || Lucide.FileQuestion;
 }
 
 export function buildTree(flat: FlatNode[]): KnowledgeData {
-    // parent_id -> 子节点列表
+    // parent_id -> child nodes
     const childrenOf = new Map<number | null, FlatNode[]>();
     for (const n of flat) {
         const arr = childrenOf.get(n.parent_id) ?? [];
         arr.push(n);
         childrenOf.set(n.parent_id, arr);
     }
-    // 后端已按 level/sort_order/id 排好，这里再稳一次
+    // The API already sorts by level, sort_order, and id; keep the order stable here too.
     for (const arr of childrenOf.values()) {
         arr.sort((a, b) => a.sort_order - b.sort_order || a.id - b.id);
     }
