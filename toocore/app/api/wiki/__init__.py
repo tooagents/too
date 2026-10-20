@@ -2,7 +2,7 @@ from fastapi import APIRouter
 
 from .wiki_endpoint import wikiRou
 
-rouAI = APIRouter()
+rouWiki = APIRouter()
 
 
-rouAI.include_router(wikiRou, prefix="/wiki", tags=["ai-wiki"])
+rouWiki.include_router(wikiRou, prefix="/wiki", tags=["wiki"])
