@@ -1,4 +1,5 @@
 SCHEMA_TOO_INV = "too_inv"
+SCHEMA_TOO_WIKI = "too_wiki"
 SCHEMA_TOO_T4 = "too_t4"
 SCHEMA_TOO_GLOBAL = "too_global"
 SCHEMA_TOO_AI = "too_ai"

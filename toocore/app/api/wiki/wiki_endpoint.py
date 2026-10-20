@@ -22,7 +22,9 @@ logger = logging.getLogger("app.http")
 
 
 from sqlalchemy import text
+from sqlalchemy.exc import SQLAlchemyError
 from app.db.conn.db_async import get_db_admin
+from app.db.models.db_schemas import SCHEMA_TOO_WIKI
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
@@ -30,11 +32,19 @@ from sqlalchemy.ext.asyncio import AsyncSession
 async def get_knowledge_tree(
     db: AsyncSession = Depends(get_db_admin),
 ):
-    result = await db.execute(
-        text("""
-            SELECT id, parent_id, level, name, icon, content, tag, sort_order
-            FROM knowledge_nodes
-            ORDER BY level, sort_order, id
-        """)
-    )
+    try:
+        result = await db.execute(
+            text(f"""
+                SELECT id, parent_id, level, name, icon, content, tag, sort_order
+                FROM {SCHEMA_TOO_WIKI}.knowledge_nodes
+                ORDER BY level, sort_order, id
+            """)
+        )
+    except SQLAlchemyError as exc:
+        logger.exception("Failed to load wiki knowledge tree")
+        raise HTTPException(
+            status_code=503,
+            detail="Wiki data is temporarily unavailable",
+        ) from exc
+
     return {"nodes": [dict(r) for r in result.mappings().all()]}
