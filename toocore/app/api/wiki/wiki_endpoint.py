@@ -16,9 +16,6 @@ from app.service.ser_ai_feedback import log_feedback_event
 from app.service.ser_ai_router import route_and_answer as route_and_answer_service
 
 
-from app.schemas.sch_knowledge import KnowledgeTreeResponse
-from app.service.ser_knowledge import fetch_all_nodes
-
 
 wikiRou = APIRouter()
 logger = logging.getLogger("app.http")
@@ -31,7 +28,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 @wikiRou.get("/tree")
 async def get_knowledge_tree(
-    _zjwt: JWType = Depends(get_zjwt),
     db: AsyncSession = Depends(get_db_admin),
 ):
     result = await db.execute(
