@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import type { Selection, KnowledgeData } from './types';
-import { buildTree, type FlatNode } from './lib/buildTree';
+import { buildTree, type FlatNode } from './components/buildTree';
 import Sidebar from './components/Sidebar';
 import MainArea from './components/MainArea';
 

@@ -1,5 +1,5 @@
 import {
-    BookOpen, Laptop, Calculator, Globe, FlaskConical,
+    Laptop, Globe, 
     // CS 小类
     GitBranch, Network, Database, Cpu,
     // CS 小小类
@@ -7,7 +7,7 @@ import {
     // 排序卡片
     ArrowUp, Shuffle, Boxes, Layers,
     // 图算法
-    Waypoints, Network as NetworkIcon, Search,
+    Waypoints, Search,
     // DP
     Package, AlignLeft, PencilLine, Coins,
     // 网络
