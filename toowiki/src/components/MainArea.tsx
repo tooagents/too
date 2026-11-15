@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { ArrowLeft, Clock, FileText, Pencil, Save, Tag, X } from 'lucide-react';
+import { Fragment, useEffect, useRef, useState } from 'react';
+import { ArrowLeft, Bold, Clock, FileText, List, Pencil, Save, Tag, X } from 'lucide-react';
 import type { Card, Category, SubCategory, Topic } from '../types';
 import { apiBaseUrl } from '../config/app';
 import Tabs from './Tabs';
@@ -21,6 +21,7 @@ export default function MainArea({ category, sub, topic, navigationVersion, onSe
     const [contentDraft, setContentDraft] = useState('');
     const [saving, setSaving] = useState(false);
     const [saveError, setSaveError] = useState<string | null>(null);
+    const contentTextareaRef = useRef<HTMLTextAreaElement>(null);
 
     useEffect(() => {
         setSelectedCard(null);
@@ -70,6 +71,47 @@ export default function MainArea({ category, sub, topic, navigationVersion, onSe
         }
     };
 
+    const applyBold = () => {
+        const textarea = contentTextareaRef.current;
+        if (!textarea) return;
+
+        const { selectionStart, selectionEnd } = textarea;
+        const selectedText = contentDraft.slice(selectionStart, selectionEnd);
+        const replacement = selectedText ? `**${selectedText}**` : '**bold text**';
+        setContentDraft(contentDraft.slice(0, selectionStart) + replacement + contentDraft.slice(selectionEnd));
+        requestAnimationFrame(() => {
+            textarea.focus();
+            const selectionStartAfterFormat = selectionStart + 2;
+            textarea.setSelectionRange(selectionStartAfterFormat, selectionStartAfterFormat + (selectedText || 'bold text').length);
+        });
+    };
+
+    const applyList = () => {
+        const textarea = contentTextareaRef.current;
+        if (!textarea) return;
+
+        const { selectionStart, selectionEnd } = textarea;
+        const blockStart = contentDraft.lastIndexOf('\n', selectionStart - 1) + 1;
+        const adjustedSelectionEnd = selectionEnd > selectionStart && contentDraft[selectionEnd - 1] === '\n'
+            ? selectionEnd - 1
+            : selectionEnd;
+        const nextNewline = contentDraft.indexOf('\n', adjustedSelectionEnd);
+        const blockEnd = nextNewline === -1 ? contentDraft.length : nextNewline;
+        const lines = contentDraft.slice(blockStart, blockEnd).split('\n');
+        const nonEmptyLines = lines.filter(line => line.trim());
+        const isList = nonEmptyLines.length > 0 && nonEmptyLines.every(line => /^\s*[-*]\s+/.test(line));
+        const replacement = lines.map(line => {
+            if (!line.trim()) return line;
+            return isList ? line.replace(/^(\s*)[-*]\s+/, '$1') : `- ${line}`;
+        }).join('\n');
+
+        setContentDraft(contentDraft.slice(0, blockStart) + replacement + contentDraft.slice(blockEnd));
+        requestAnimationFrame(() => {
+            textarea.focus();
+            textarea.setSelectionRange(blockStart, blockStart + replacement.length);
+        });
+    };
+
     return (
         <main className="flex-1 flex flex-col overflow-hidden bg-white">
             <div className="px-7 pt-5 pb-2 flex items-baseline gap-3">
@@ -110,7 +152,15 @@ export default function MainArea({ category, sub, topic, navigationVersion, onSe
                                 </label>
                                 <label className="block text-sm font-medium text-slate-700">
                                     Article content
-                                    <textarea value={contentDraft} onChange={event => setContentDraft(event.target.value)} rows={18} className="mt-2 w-full resize-y rounded-xl border border-slate-300 px-4 py-3 text-base font-normal leading-7 text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
+                                    <div className="mt-2 flex items-center gap-1 rounded-t-xl border border-slate-300 bg-slate-50 px-2 py-1">
+                                        <button type="button" aria-label="Bold selected text" title="Bold" onMouseDown={event => event.preventDefault()} onClick={applyBold} className="rounded-md p-2 text-slate-600 hover:bg-slate-200 hover:text-slate-900">
+                                            <Bold className="h-4 w-4" />
+                                        </button>
+                                        <button type="button" aria-label="Toggle bulleted list" title="Bulleted list" onMouseDown={event => event.preventDefault()} onClick={applyList} className="rounded-md p-2 text-slate-600 hover:bg-slate-200 hover:text-slate-900">
+                                            <List className="h-4 w-4" />
+                                        </button>
+                                    </div>
+                                    <textarea ref={contentTextareaRef} value={contentDraft} onChange={event => setContentDraft(event.target.value)} rows={18} className="w-full resize-y rounded-b-xl border border-t-0 border-slate-300 px-4 py-3 text-base font-normal leading-7 text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
                                 </label>
                             </div>
                         ) : (
@@ -125,7 +175,7 @@ export default function MainArea({ category, sub, topic, navigationVersion, onSe
                                     </div>
                                 </header>
                                 <div className="whitespace-pre-wrap py-8 text-base leading-8 text-slate-700">
-                                    {selectedCard.desc || 'This article does not have any content yet.'}
+                                    <ArticleContent content={selectedCard.desc || 'This article does not have any content yet.'} />
                                 </div>
                             </>
                         )}
@@ -145,6 +195,57 @@ export default function MainArea({ category, sub, topic, navigationVersion, onSe
             </div>
         </main>
     );
+}
+
+function ArticleContent({ content }: { content: string }) {
+    const blocks: Array<{ type: 'text'; lines: string[] } | { type: 'list'; items: string[] }> = [];
+    let textLines: string[] = [];
+    let listItems: string[] = [];
+
+    const flushText = () => {
+        if (textLines.length) blocks.push({ type: 'text', lines: textLines });
+        textLines = [];
+    };
+    const flushList = () => {
+        if (listItems.length) blocks.push({ type: 'list', items: listItems });
+        listItems = [];
+    };
+
+    for (const line of content.split('\n')) {
+        const listItem = /^\s*[-*]\s+(.+)$/.exec(line);
+        if (listItem) {
+            flushText();
+            listItems.push(listItem[1]);
+        } else {
+            flushList();
+            textLines.push(line);
+        }
+    }
+    flushText();
+    flushList();
+
+    return blocks.map((block, blockIndex) => block.type === 'list' ? (
+        <ul key={blockIndex} className="my-3 list-disc pl-6">
+            {block.items.map((item, itemIndex) => <li key={itemIndex}>{renderInlineMarkdown(item)}</li>)}
+        </ul>
+    ) : (
+        <div key={blockIndex}>
+            {block.lines.map((line, lineIndex) => (
+                <Fragment key={lineIndex}>
+                    {renderInlineMarkdown(line)}
+                    {lineIndex < block.lines.length - 1 && <br />}
+                </Fragment>
+            ))}
+        </div>
+    ));
+}
+
+function renderInlineMarkdown(text: string) {
+    return text.split(/(\*\*[^*]+\*\*)/g).map((part, index) => (
+        part.startsWith('**') && part.endsWith('**')
+            ? <strong key={index}>{part.slice(2, -2)}</strong>
+            : part
+    ));
 }
 
 function MetaRow({ meta = {} }: { meta?: Topic['meta'] }) {
