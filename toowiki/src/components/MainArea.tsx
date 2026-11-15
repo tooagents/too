@@ -241,11 +241,15 @@ function ArticleContent({ content }: { content: string }) {
 }
 
 function renderInlineMarkdown(text: string) {
-    return text.split(/(\*\*[^*]+\*\*)/g).map((part, index) => (
-        part.startsWith('**') && part.endsWith('**')
-            ? <strong key={index}>{part.slice(2, -2)}</strong>
-            : part
-    ));
+    return text.split(/(\*\*[^*]+\*\*|\*[^*]+\*)/g).map((part, index) => {
+        if (part.startsWith('**') && part.endsWith('**')) {
+            return <strong key={index}>{part.slice(2, -2)}</strong>;
+        }
+        if (part.startsWith('*') && part.endsWith('*')) {
+            return <strong key={index}>{part.slice(1, -1)}</strong>;
+        }
+        return part;
+    });
 }
 
 function MetaRow({ meta = {} }: { meta?: Topic['meta'] }) {
