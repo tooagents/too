@@ -110,7 +110,7 @@ export default function MainArea({ category, sub, topic, navigationVersion, onSe
                                 </label>
                                 <label className="block text-sm font-medium text-slate-700">
                                     Article content
-                                    <textarea value={contentDraft} onChange={event => setContentDraft(event.target.value)} rows={18} className="mt-2 w-full resize-y rounded-xl border border-slate-300 px-4 py-3 text-base leading-7 text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
+                                    <textarea value={contentDraft} onChange={event => setContentDraft(event.target.value)} rows={18} className="mt-2 w-full resize-y rounded-xl border border-slate-300 px-4 py-3 text-base font-normal leading-7 text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
                                 </label>
                             </div>
                         ) : (
