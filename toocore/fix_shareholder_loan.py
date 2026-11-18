@@ -1,6 +1,7 @@
 import pandas as pd
 from datetime import datetime
 
+
 # Read current journal entries
 je_df = pd.read_excel('A:/toocore/doc/td2024_tax_package_FINAL.xlsx', sheet_name='Journal Entries')
 gl_df = pd.read_excel('A:/toocore/doc/td2024_tax_package_FINAL.xlsx', sheet_name='General Ledger')
