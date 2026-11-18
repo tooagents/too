@@ -1,1 +1,1 @@
-export * from 'src/accounting/je/payroll-history-api';
+export * from 'src/accounting/workspace/components/ai-entry';
