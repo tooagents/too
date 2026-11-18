@@ -101,7 +101,7 @@ export const historyAPI = {
         // const response = await apiFetch('/embedding/route_answer', {
         // const response = await apiFetch('/brain/python', {
         // const response = await apiFetch('/brain/langgraph', {
-        const response = await apiFetch('/ai/brain/lgstream', {
+        const response = await apiFetch('/brain/lgstream', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ query, top_k: topK }),
