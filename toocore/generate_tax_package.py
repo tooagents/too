@@ -2,6 +2,7 @@ import pandas as pd
 from decimal import Decimal, ROUND_HALF_UP
 from datetime import datetime
 
+
 # Read source data
 df = pd.read_excel('A:/toocore/doc/td2024.xlsx')
 
