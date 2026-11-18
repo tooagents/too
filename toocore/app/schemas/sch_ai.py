@@ -1,7 +1,7 @@
-from pydantic import BaseModel, Field
-
-from typing import Any, List, Optional, Literal
+from typing import Any, List, Literal, Optional
 from uuid import UUID
+
+from pydantic import BaseModel, Field
 
 
 class JWType(BaseModel):
@@ -17,7 +17,7 @@ class JWType(BaseModel):
 
 class RagHit(BaseModel):
     evidence_id: int
-    score: Optional[float] = None
+    score: Optional[float] = None 
     vector_score: Optional[float] = None
     keyword_score: Optional[float] = None
     hybrid_score: Optional[float] = None

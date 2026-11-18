@@ -82,18 +82,19 @@ SQL_SCHEMA_HINTS = (
 )
 
 
+import re
+
+_SQL_KEYWORDS = [
+    "total", "sum", "count", "average", "avg", "min", "max", "median",
+    "how many", "how much", "breakdown", "by month", "by employee",
+    "by department", "group by", "per month", "per employee", "per department",
+]
+_SQL_RE = re.compile(r"\b(" + "|".join(map(re.escape, _SQL_KEYWORDS)) + r")\b", re.I)
+
 def should_force_sql(query: str) -> tuple[bool, str]:
-    lowered = (query or "").lower()
-    keywords = [
-        "total",        "sum",        "count",        "average",        "avg",
-        "min",        "max",        "median",        "how many",        "how much",
-        "breakdown",        "by month",        "by employee",        "by department",
-        "group by",        "per month",        "per employee",        "per department",
-    ]
-    for kw in keywords:
-        if kw in lowered:
-            return True, kw
-    return False, ""
+    m = _SQL_RE.search(query or "")
+    return (True, m.group(1).lower()) if m else (False, "")
+
 
 
 async def decide_route(query: str) -> tuple[dict[str, Any], list[str]]:

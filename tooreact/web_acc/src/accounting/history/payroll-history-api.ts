@@ -1,1 +1,1 @@
-export * from 'src/accounting/workspace/components/ai-entry';
+export * from 'src/components/aisearch/ai-entry';
