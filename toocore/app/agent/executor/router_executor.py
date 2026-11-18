@@ -1,7 +1,7 @@
 import json
 import logging
 
-import app.agent.brain as brain, app.agent.tools as tools
+import app.agent.brain as brain, toocore.app.lgraph.core_tools as core_tools
 
 from app.agent.brain import (
     SQL_MODEL,
@@ -11,7 +11,7 @@ from app.agent.brain import (
     generate_sql,
     should_force_sql,
 )
-from app.agent.tools import (
+from toocore.app.lgraph.core_tools import (
     GENERAL_MODEL,
     execute_sql,
     general_answer,
