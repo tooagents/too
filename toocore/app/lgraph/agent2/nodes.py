@@ -1,3 +1,4 @@
+
 import inspect
 import json
 
@@ -16,7 +17,7 @@ from app.agent.tools import (
     run_rag_rerank,
     validate_sql_select,
 )
-from app.langgraph.agent2.state import Agent2State
+from app.lgraph.agent2.state import Agent2State
 
 
 async def _emit_status(

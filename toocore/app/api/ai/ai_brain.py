@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import get_zjwt
 from app.db.conn.pgconn import get_rls_conn
-from app.langgraph.sse.lgstream import build_langgraph_sse_response
+from app.lgraph.sse.lgstream import build_langgraph_sse_response
 from app.schemas.sch_ai import JWType
 from app.schemas.sch_ai_rag_basic import RagRerankAnswerResponse
 from app.schemas.sch_ai_feedback import FeedbackCreateRequest, FeedbackCreateResponse
@@ -34,7 +34,7 @@ async def route_answer_langgraph(
     db: AsyncSession = Depends(get_rls_conn),
 ):
     try:
-        from app.langgraph.agent2 import route_and_answer as route_langgraph
+        from app.lgraph.agent2 import route_and_answer as route_langgraph
     except Exception as exc:
         raise HTTPException(status_code=503, detail=f"LangGraph not available: {exc}") from exc
 
@@ -49,7 +49,7 @@ async def route_answer_langgraph_stream(
     db: AsyncSession = Depends(get_rls_conn),
 ):
     try:
-        from app.langgraph.agent2 import route_and_answer as route_langgraph
+        from app.lgraph.agent2 import route_and_answer as route_langgraph
     except Exception as exc:
         raise HTTPException(status_code=503, detail=f"LangGraph not available: {exc}") from exc
 

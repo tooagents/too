@@ -1,13 +1,13 @@
 from langgraph.graph import StateGraph, START, END
 
-from app.langgraph.agent2.nodes import (
+from app.lgraph.agent2.nodes import (
     decide_route_node,
     general_node,
     init_state,
     rag_node,
     sql_node,
 )
-from app.langgraph.agent2.state import Agent2State
+from app.lgraph.agent2.state import Agent2State
 
 
 workflow = StateGraph(Agent2State)

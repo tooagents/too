@@ -1,8 +1,8 @@
 # main.py
 from langgraph.graph import StateGraph, START, END
 
-from app.langgraph.agent1.node.node_1 import llm_node, token_counter_node
-from app.langgraph.agent1.schema.sch_llm import LLMState
+from app.lgraph.agent1.node.node_1 import llm_node, token_counter_node
+from app.lgraph.agent1.schema.sch_llm import LLMState
 
 def add_a(state) -> dict:
     return {"text": state["text"] + "a"}

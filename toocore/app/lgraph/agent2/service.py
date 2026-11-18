@@ -1,7 +1,7 @@
 from collections.abc import Awaitable, Callable
 
-from app.langgraph.agent2.graph import compiled_workflow
-from app.langgraph.agent2.state import Agent2State
+from app.lgraph.agent2.graph import compiled_workflow
+from app.lgraph.agent2.state import Agent2State
 from app.schemas.sch_ai import JWType
 from app.schemas.sch_ai_router import RouterQueryRequest
 from sqlalchemy.ext.asyncio import AsyncSession

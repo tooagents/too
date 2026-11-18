@@ -9,7 +9,7 @@ langRou = APIRouter()
 @langRou.post("/token")
 async def get_token_count(request: dict):
     try:
-        from app.langgraph.agent1.workflow.agent_1_workflow import compiled_workflow
+        from app.lgraph.agent1.workflow.agent_1_workflow import compiled_workflow
     except Exception as exc:
         raise HTTPException(status_code=503, detail=f"LangGraph not available: {exc}") from exc
 
