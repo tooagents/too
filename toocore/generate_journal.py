@@ -5,6 +5,7 @@ from datetime import datetime
 # Read source data
 df = pd.read_excel('A:/toocore/doc/td2024.xlsx')
 
+
 # Journal entries list
 journal_entries = []
 entry_num = 1
