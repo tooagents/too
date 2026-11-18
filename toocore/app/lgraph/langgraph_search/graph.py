@@ -1,67 +1,93 @@
-"""
-START -> Init -> DecideRoute --+-- rag     -> RAG ------+-- done  -> END
-                  ^            |                       |
-                  |            +-- sql     -> SQL -----+-- done  -> END
-                  |            |                       |
-                  |            +-- general -> General -------------> END
-                  |                                    |
-                  +------------- retry ----------------+
-                    (from RAG, up to MAX_ATTEMPTS, SQL fallback RAG in node already)
+# app/lgraph/langgraph_search/graph.py
+from contextlib import asynccontextmanager
 
-Agent 开发正在从 Chain-centric 转向 Agent-centric。
-
-
-User asks → agent runs → hits risky step
-   → ApprovalGate node: create approval record, notify approver, interrupt()
-   → run ends, user gets "Pending approval (ID 123)"
-
-   ... hours or days pass, no compute running ...
-
-Approver clicks link / Slack button / dashboard
-   → POST /approvals/123/decision
-   → server loads the thread and resumes with Command(resume=...)
-   → graph continues → result delivered to the user (push or poll)
-
-DecideRoute → SQLGenerate → [risk check] → ApprovalGate → SQLExecute
-                                  └── safe? skip the gate entirely
-
-Approvals in the real world take days, so I treat the pause as durable state, not an open request. The graph checkpoints 
-to Postgres and exits. An approvals table tracks status and deadlines, a webhook resumes the thread when the approver decides, 
-and a timeout policy handles non-response. The gate is a reusable node, so refunds, data exports, or production changes are 
-configuration, not new code.”                                  
-"""
+from langgraph.checkpoint.base import BaseCheckpointSaver
+from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 from langgraph.graph import END, START, StateGraph
 
-from app.lgraph.langgraph_search.nodes import node_general,    node_init_state,    node_orchestration,    node_rag,    node_sql
+from app.lgraph.langgraph_search.nodes import (
+    node_general,
+    node_init_state,
+    node_orchestration,
+    node_rag,
+)
+from app.lgraph.langgraph_search.nodes_approval import (
+    node_approval_gate,
+    node_request_approval,
+    node_sql_execute,
+    node_sql_fallback,
+    node_sql_generate,
+    node_sql_giveup,
+    route_after_execute,
+    route_after_generate,
+)
 from app.lgraph.langgraph_search.state import StateSearch
 
 MAX_ATTEMPTS = 2
 
+
 def route_after_rag(state: StateSearch) -> str:
     """Re-route only when RAG came back weak and attempts remain."""
-    if state.get("answer_ok", True):return "done"
-    if state.get("attempts", 0) >= MAX_ATTEMPTS:return "done"
+    if state.get("answer_ok", True):
+        return "done"
+    if state.get("attempts", 0) >= MAX_ATTEMPTS:
+        return "done"
     return "retry"
 
 
-graph_ = StateGraph(StateSearch)
-graph_.add_node("Init", node_init_state)
-graph_.add_node("DecideRoute", node_orchestration)
-graph_.add_node("RAG", node_rag)
-graph_.add_node("SQL", node_sql)
-graph_.add_node("General", node_general)
+def build_graph(checkpointer: BaseCheckpointSaver):
+    g = StateGraph(StateSearch)
 
-graph_.add_edge(START, "Init")
-graph_.add_edge("Init", "DecideRoute")
-graph_.add_conditional_edges(
-    "DecideRoute",
-    lambda state: state.get("route", "rag"),
-    {"rag": "RAG", "sql": "SQL", "general": "General"},
-)
+    g.add_node("Init", node_init_state)
+    g.add_node("DecideRoute", node_orchestration)
+    g.add_node("RAG", node_rag)
+    g.add_node("General", node_general)
 
-# only RAG can loop back; SQL already falls back to RAG inside its node
-graph_.add_conditional_edges("RAG", route_after_rag, {"done": END, "retry": "DecideRoute"})
-graph_.add_edge("SQL", END)
-graph_.add_edge("General", END)
+    # SQL branch: the old single "SQL" node is now four nodes
+    g.add_node("SQLGenerate", node_sql_generate)
+    g.add_node("RequestApproval", node_request_approval)
+    g.add_node("SQLFallback", node_sql_fallback)
+    g.add_node("SQLGiveUp", node_sql_giveup)
+    g.add_node("ApprovalGate", node_approval_gate)
+    g.add_node("SQLExecute", node_sql_execute)
 
-compiled_workflow = graph_.compile()
+    g.add_conditional_edges(
+        "SQLGenerate", route_after_generate,
+        ["SQLFallback", "SQLGiveUp", "RequestApproval", "SQLExecute"],
+    )
+    g.add_edge("RequestApproval", "ApprovalGate")
+    # no edge out of ApprovalGate: it returns Command(goto=...) itself
+    g.add_conditional_edges(
+        "SQLExecute", route_after_execute,
+        ["SQLGenerate", "SQLFallback", "SQLGiveUp", END],
+    )
+    g.add_edge("SQLFallback", END)
+    g.add_edge("SQLGiveUp", END)
+    
+    g.add_edge(START, "Init")
+    g.add_edge("Init", "DecideRoute")
+    g.add_conditional_edges(
+        "DecideRoute",
+        lambda state: state.get("route", "rag"),
+        {"rag": "RAG", "sql": "SQLGenerate", "general": "General"},
+    )
+
+    g.add_conditional_edges("RAG", route_after_rag, {"done": END, "retry": "DecideRoute"})
+
+    g.add_conditional_edges(
+        "SQLGenerate", route_after_generate, ["RAG", "RequestApproval", "SQLExecute"]
+    )
+    g.add_edge("RequestApproval", "ApprovalGate")
+    # no edge out of ApprovalGate: it returns Command(goto=...) itself
+    g.add_edge("SQLExecute", END)
+    g.add_edge("General", END)
+
+    return g.compile(checkpointer=checkpointer)
+
+
+@asynccontextmanager
+async def open_graph(pg_url: str):
+    """Persistent graph. Call once at app startup (FastAPI lifespan)."""
+    async with AsyncPostgresSaver.from_conn_string(pg_url) as saver:
+        await saver.setup()      # creates checkpoint tables if missing
+        yield build_graph(saver)

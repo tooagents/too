@@ -1,5 +1,7 @@
 import inspect, json
 
+from langchain_core.runnables import RunnableConfig
+
 from toocore.app.lgraph.core_tools import     GENERAL_MODEL,    execute_sql,    general_answer,    run_rag_rerank,    validate_sql_select
 from app.lgraph.langgraph_search.state import StateSearch
 from app.lgraph.langgraph_search.llm_decisions import SQL_MODEL,    TOP_K_MODEL,    llm_judge_route,    dynamic_top_k,    generate_sql,    should_force_sql
@@ -9,14 +11,20 @@ MAX_SQL_ATTEMPTS = 2
 MIN_RAG_CONFIDENCE = 0.5  # tune to your real confidence range
 
 
-async def _emit_status(    state: StateSearch,    status: str,    meta: dict | None = None,) -> None:
-    callback_ = state.get("status_cb")
-    if not callback_: return
+async def _emit_status(
+    config: RunnableConfig,
+    status: str,
+    meta: dict | None = None,
+) -> None:
+    callback_ = (config.get("configurable") or {}).get("status_cb")
+    if not callback_:
+        return
     try:
         result = callback_(status, meta or {})
-        if inspect.isawaitable(result): await result
-    except Exception:return
-
+        if inspect.isawaitable(result):
+            await result
+    except Exception:
+        return
 
 def node_init_state(state: StateSearch) -> StateSearch: return state
 
@@ -30,7 +38,7 @@ async def node_orchestration(state: StateSearch) -> StateSearch:
     attempts = state.get("attempts", 0)
     forced_sql = bool(state.get("forced_sql"))
 
-    await _emit_status(state, "routing_start", {"query": query, "attempt": attempts + 1, "tried": tried},)
+    await _emit_status(config, "routing_start", {"query": query, "attempt": attempts + 1, "tried": tried})
 
     yesno_force_sql, keyword_in_query = should_force_sql(query)
     if yesno_force_sql and "sql" not in tried:
@@ -57,8 +65,15 @@ async def node_orchestration(state: StateSearch) -> StateSearch:
             route_reasoning.append(note)
 
     route = decision.get("route", "rag")
-    await _emit_status(        state,        "routing_done",
-        {            "route": route,            "confidence": decision.get("confidence"),            "rationale": decision.get("rationale"),        },    )
+    await _emit_status(
+        config,
+        "routing_done",
+        {
+            "route": route,
+            "confidence": decision.get("confidence"),
+            "rationale": decision.get("rationale"),
+        },
+    )
     return {
         **state,
         "decision": decision,
@@ -87,7 +102,7 @@ async def node_rag(state: StateSearch) -> StateSearch:
     top_k = state.get("top_k")
     zjwt = state.get("zjwt")
     db = state.get("db")
-    await _emit_status(state, "rag_start", {"query": query, "top_k": top_k})
+    await _emit_status(config, "rag_start", {"query": query, "top_k": top_k})
 
     decided_top_k, top_k_rationale, top_k_reasoning = await dynamic_top_k(
         query,
@@ -103,7 +118,7 @@ async def node_rag(state: StateSearch) -> StateSearch:
         decided_top_k,
         zjwt,
         db,
-        status_cb=state.get("status_cb"),
+        status_cb=cfg.get("status_cb"),
     )
     if isinstance(rag_response, dict):
         rag_response["route"] = "rag"

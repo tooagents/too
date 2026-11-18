@@ -13,6 +13,7 @@ class StateSearch(TypedDict, total=False):
     route_reasoning: list[str]
     tried_routes: list[str]
     attempts: int
+    forced_sql: bool
 
     # ---- RAG ----
     rag_response: dict[str, Any]
@@ -22,6 +23,9 @@ class StateSearch(TypedDict, total=False):
     sql_text: str
     sql_rationale: str | None
     sql_reasoning: list[str]
+    sql_error: str | None     # last guardrail/execution error, fed back into generate_sql
+    sql_attempts: int         # shared counter across generate and execute (cap: MAX_SQL_ATTEMPTS)
+    sql_empty: bool           # execution succeeded but returned nothing useful
 
     # ---- general ----
     general_payload: dict[str, Any]
