@@ -1,3 +1,9 @@
+# I followed the function calls in the code:
+
+# In ai_brain.py, the /lgstream handler imports route_and_answer from app.lgraph.agent2 as route_langgraph, then passes it to build_langgraph_sse_response.
+# In lgstream.py, the SSE runner calls that function with the request payload, auth context, database session, and status callback.
+# agent2/init.py re-exports it from service.py; service.py calls compiled_workflow.ainvoke(...).
+# So the SSE handler calls LangGraph’s route_and_answer; it streams status events and then the final result—not token-by-token answer text.
 from __future__ import annotations
 
 import logging

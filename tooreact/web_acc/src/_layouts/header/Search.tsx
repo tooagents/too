@@ -498,7 +498,7 @@ function Search() {
                 setSearchLoading(true);
                 setSearchError(null);
                 setSearchStatusLines(['Thinking...']);
-                const payload = await historyAPI.searchPayrollHistory(trimmed, 5, (status, meta) => {
+                const payload = await historyAPI.askAI(trimmed, 5, (status, meta) => {
                     if (cancelled) return;
                     traceSearch(requestId, 'status callback', { status, meta });
                     const next = formatStatusLabel(status, meta);

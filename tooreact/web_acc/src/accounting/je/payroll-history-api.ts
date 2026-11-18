@@ -211,7 +211,7 @@ export const historyAPI = {
         return response.json();
     },
 
-    async searchPayrollHistory(query: string, topK = 5, onStatus?: StatusCallback): Promise<unknown> {
+    async askAI(query: string, topK = 5, onStatus?: StatusCallback): Promise<unknown> {
         console.log('[SSE][payroll-history] request start', {
             path: '/mcpbrain/lgstream',
             query,
