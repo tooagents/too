@@ -1,13 +1,13 @@
 from fastapi import APIRouter
 
-from .too import rouToo
-from .t4 import rouT4
-from .inv import invRou
-from .ai import rouAI
-from .wiki import rouWiki
-from .embedding import rouBI
 from .acc import rouAcc
+from .ai import rouAI
+from .embedding import rouBI
 from .injection import rouOcr
+from .inv import invRou
+from .t4 import rouT4
+from .too import rouToo
+from .wiki import rouWiki
 
 rou = APIRouter()
 
