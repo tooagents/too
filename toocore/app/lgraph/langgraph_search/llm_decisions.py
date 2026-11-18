@@ -120,10 +120,8 @@ _GENERAL_RE = _word_re(_GENERAL_TERMS)
 def should_force_sql(query: str) -> tuple[bool, str]:
     q = query or ""
     agg = _AGG_RE.search(q)
-    if not agg:
-        return False, ""
-    if not _DATA_RE.search(q):
-        return False, ""
+    if not agg: return False, ""
+    if not _DATA_RE.search(q):return False, ""
     return True, agg.group(1).lower()
 
 
@@ -158,7 +156,7 @@ async def _call_json(
     return payload, reasoning
 
 
-async def decide_route(query: str) -> tuple[dict[str, Any], list[str]]:
+async def llm_judge_route(query: str) -> tuple[dict[str, Any], list[str]]:
     system_msg = (
         "You are a router for a payroll and business assistant. "
         "Choose 'sql' when the question can be answered precisely with a single "
@@ -185,21 +183,13 @@ async def decide_route(query: str) -> tuple[dict[str, Any], list[str]]:
             "confidence": 0.0,
             "rationale": "Router call failed or returned invalid JSON; defaulted to rag.",
         }
-    if payload.get("route") not in {"rag", "general", "sql"}:
-        payload["route"] = "rag"
-    if not isinstance(payload.get("confidence"), (int, float)):
-        payload["confidence"] = 0.0
-    if not isinstance(payload.get("rationale"), str):
-        payload["rationale"] = "Router rationale missing; defaulted to rag."
+    if payload.get("route") not in {"rag", "general", "sql"}: payload["route"] = "rag"
+    if not isinstance(payload.get("confidence"), (int, float)): payload["confidence"] = 0.0
+    if not isinstance(payload.get("rationale"), str): payload["rationale"] = "Router rationale missing; defaulted to rag."
     return payload, reasoning
 
 
-async def decide_top_k(
-    query: str,
-    default_top_k: int,
-    min_k: int = 3,
-    max_k: int = 100,
-) -> tuple[int, str, list[str]]:
+async def dynamic_top_k(    query: str,    default_top_k: int,    min_k: int = 3,    max_k: int = 100,) -> tuple[int, str, list[str]]:
     system_msg = (
         "You choose a retrieval top_k for RAG. "
         "Use higher values for short/ambiguous queries and lower values for specific queries. "

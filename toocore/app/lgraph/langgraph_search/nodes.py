@@ -2,7 +2,7 @@ import inspect, json
 
 from toocore.app.lgraph.core_tools import     GENERAL_MODEL,    execute_sql,    general_answer,    run_rag_rerank,    validate_sql_select
 from app.lgraph.langgraph_search.state import StateSearch
-from app.lgraph.langgraph_search.llm_decisions import SQL_MODEL,    TOP_K_MODEL,    decide_route,    decide_top_k,    generate_sql,    should_force_sql
+from app.lgraph.langgraph_search.llm_decisions import SQL_MODEL,    TOP_K_MODEL,    llm_judge_route,    dynamic_top_k,    generate_sql,    should_force_sql
 
 ROUTES = ("rag", "sql", "general")
 MAX_SQL_ATTEMPTS = 2
@@ -32,24 +32,23 @@ async def node_orchestration(state: StateSearch) -> StateSearch:
 
     await _emit_status(state, "routing_start", {"query": query, "attempt": attempts + 1, "tried": tried},)
 
-    force_sql, force_kw = should_force_sql(query)
-    if force_sql and "sql" not in tried:
+    yesno_force_sql, keyword_in_query = should_force_sql(query)
+    if yesno_force_sql and "sql" not in tried:
         forced_sql = True
         decision = {
             "route": "sql",
             "confidence": 1.0,
-            "rationale": f"Keyword '{force_kw}' with company-data context implies SQL.",
+            "rationale": f"Keyword '{keyword_in_query}' with company-data context implies SQL.",
         }
         route_reasoning = [decision["rationale"]]
     else:
-        decision, route_reasoning = await decide_route(query)
+        decision, route_reasoning = await llm_judge_route(query)
         route_reasoning = list(route_reasoning or [])
         route = decision.get("route", "rag")
 
         # Never repeat a route that already ran; never fall to 'general' for a forced-SQL question
         blocked = set(tried)
-        if forced_sql:
-            blocked.add("general")
+        if forced_sql: blocked.add("general")
         if route in blocked:
             untried = [r for r in ROUTES if r not in blocked]
             switched = untried[0] if untried else "rag"
@@ -58,15 +57,8 @@ async def node_orchestration(state: StateSearch) -> StateSearch:
             route_reasoning.append(note)
 
     route = decision.get("route", "rag")
-    await _emit_status(
-        state,
-        "routing_done",
-        {
-            "route": route,
-            "confidence": decision.get("confidence"),
-            "rationale": decision.get("rationale"),
-        },
-    )
+    await _emit_status(        state,        "routing_done",
+        {            "route": route,            "confidence": decision.get("confidence"),            "rationale": decision.get("rationale"),        },    )
     return {
         **state,
         "decision": decision,
@@ -97,7 +89,7 @@ async def node_rag(state: StateSearch) -> StateSearch:
     db = state.get("db")
     await _emit_status(state, "rag_start", {"query": query, "top_k": top_k})
 
-    decided_top_k, top_k_rationale, top_k_reasoning = await decide_top_k(
+    decided_top_k, top_k_rationale, top_k_reasoning = await dynamic_top_k(
         query,
         default_top_k=top_k,
     )

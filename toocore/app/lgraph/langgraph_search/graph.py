@@ -7,6 +7,28 @@ START -> Init -> DecideRoute --+-- rag     -> RAG ------+-- done  -> END
                   |                                    |
                   +------------- retry ----------------+
                     (from RAG, up to MAX_ATTEMPTS, SQL fallback RAG in node already)
+
+Agent 开发正在从 Chain-centric 转向 Agent-centric。
+
+
+User asks → agent runs → hits risky step
+   → ApprovalGate node: create approval record, notify approver, interrupt()
+   → run ends, user gets "Pending approval (ID 123)"
+
+   ... hours or days pass, no compute running ...
+
+Approver clicks link / Slack button / dashboard
+   → POST /approvals/123/decision
+   → server loads the thread and resumes with Command(resume=...)
+   → graph continues → result delivered to the user (push or poll)
+
+DecideRoute → SQLGenerate → [risk check] → ApprovalGate → SQLExecute
+                                  └── safe? skip the gate entirely
+
+Approvals in the real world take days, so I treat the pause as durable state, not an open request. The graph checkpoints 
+to Postgres and exits. An approvals table tracks status and deadlines, a webhook resumes the thread when the approver decides, 
+and a timeout policy handles non-response. The gate is a reusable node, so refunds, data exports, or production changes are 
+configuration, not new code.”                                  
 """
 from langgraph.graph import END, START, StateGraph
 
